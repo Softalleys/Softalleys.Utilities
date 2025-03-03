@@ -11,5 +11,8 @@
         <copyright>Copyright © 2025</copyright>
         <tags>utilities json validation</tags>
         <license type="expression">MIT</license>
+
+        <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+        <repository type="git" url="https://github.com/Softalleys/Softalleys.Utilities" />
     </metadata>
 </package>

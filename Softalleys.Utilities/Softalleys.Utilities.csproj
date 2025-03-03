@@ -6,6 +6,19 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <PackageProjectUrl>https://github.com/Softalleys/Softalleys.Utilities</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Softalleys/Softalleys.Utilities</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Authors>Softalleys</Authors>
+        <Company>Softalleys S.A. de C.V.</Company>
+        <PackageTags>utilities, extensions, validation</PackageTags>
+        <Description>A comprehensive collection of utility classes, extension methods, and validation attributes for .NET applications.</Description>
+        <PackageReleaseNotes>Initial release with core utilities, extensions, and validation attributes.</PackageReleaseNotes>
+    </PropertyGroup>
+    
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
         <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.*" />
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.*" />
@@ -26,5 +39,15 @@
     
     <ItemGroup>
         <None Include="LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
+    
+    <PropertyGroup>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <!-- Your existing properties -->
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="\" />
+        <!-- Your existing items -->
     </ItemGroup>
 </Project>
