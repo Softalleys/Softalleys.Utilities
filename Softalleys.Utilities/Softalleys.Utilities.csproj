@@ -20,4 +20,11 @@
         <PackageReference Include="Humanizer.Core" Version="2.*" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
 </Project>

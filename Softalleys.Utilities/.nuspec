@@ -10,5 +10,6 @@
         <releaseNotes>Initial release.</releaseNotes>
         <copyright>Copyright © 2025</copyright>
         <tags>utilities json validation</tags>
+        <license type="expression">MIT</license>
     </metadata>
 </package>
