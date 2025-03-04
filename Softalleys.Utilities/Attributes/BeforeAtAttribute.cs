@@ -2,10 +2,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Softalleys.Utilities.Attributes;
 
+/// <summary>
+/// Validation attribute to check if a date is before a specified date.
+/// </summary>
 public class BeforeAtAttribute : ValidationAttribute
 {
     private readonly DateTimeOffset _date;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BeforeAtAttribute"/> class.
+    /// </summary>
+    /// <param name="date">The date to compare against. Can be "now", "utcnow", or a specific date string.</param>
     public BeforeAtAttribute(string date)
     {
         date = date.ToLowerInvariant().Trim();
@@ -40,6 +47,11 @@ public class BeforeAtAttribute : ValidationAttribute
         }
     }
 
+    /// <summary>
+    /// Determines whether the specified value is valid.
+    /// </summary>
+    /// <param name="value">The value to validate.</param>
+    /// <returns>true if the value is valid; otherwise, false.</returns>
     public override bool IsValid(object? value)
     {
         if (value == null) return true;

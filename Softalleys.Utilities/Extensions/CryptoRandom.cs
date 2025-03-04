@@ -2,12 +2,15 @@
 
 namespace Softalleys.Utilities.Extensions;
 
+/// <summary>
+/// Provides methods for generating cryptographically strong random values.
+/// </summary>
 public static class CryptoRandom
 {
     /// <summary>
-    ///     Generates a specified number of random bytes.
+    /// Generates a specified number of random bytes.
     /// </summary>
-    /// <param name="count">The number of random bytes to generate.</param>
+    /// <param name="count">The number of random bytes to generate. Default is 32.</param>
     /// <returns>An array of bytes filled with cryptographically strong random values.</returns>
     public static byte[] GetRandomBytes(int count = 32)
     {
@@ -18,9 +21,10 @@ public static class CryptoRandom
     }
 
     /// <summary>
-    ///     Generates a random string of the specified length using cryptographically strong random values.
+    /// Generates a random string of the specified length using cryptographically strong random values.
     /// </summary>
     /// <param name="length">The length of the random string to generate. Default is 32.</param>
+    /// <param name="withSpecialChars">Indicates whether to include special characters in the random string. Default is false.</param>
     /// <returns>A random string of the specified length.</returns>
     public static string GetRandomString(int length = 32, bool withSpecialChars = false)
     {

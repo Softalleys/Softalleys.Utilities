@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Softalleys.Utilities.Json;
 
+/// <summary>
+///     Converts <see cref="DateTimeOffset" /> objects to and from Unix time (number of seconds since Unix epoch) in JSON.
+/// </summary>
 public class DateTimeOffsetUnixTimeSecondsConverter : JsonConverter<DateTimeOffset>
 {
     /// <summary>

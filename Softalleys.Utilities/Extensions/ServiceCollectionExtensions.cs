@@ -107,6 +107,13 @@ public static class ServiceCollectionExtensions
         return services.Replace(decoratorDescriptor);
     }
 
+    /// <summary>
+    ///     Appends an element to an array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in the array.</typeparam>
+    /// <param name="source">The source array.</param>
+    /// <param name="element">The element to append.</param>
+    /// <returns>A new array with the appended element.</returns>
     private static T[] Append<T>(this T[] source, T element)
     {
         switch (source)
@@ -121,6 +128,13 @@ public static class ServiceCollectionExtensions
         }
     }
 
+    /// <summary>
+    ///     Gets the service descriptor for a specified service type.
+    /// </summary>
+    /// <typeparam name="TInterface">The service type.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to search.</param>
+    /// <returns>The service descriptor for the specified service type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the service type is not registered.</exception>
     private static ServiceDescriptor GetDescriptor<TInterface>(this IServiceCollection services)
         where TInterface : class
     {
@@ -128,6 +142,13 @@ public static class ServiceCollectionExtensions
                ?? throw new InvalidOperationException($"{typeof(TInterface).Name} is not registered");
     }
 
+    /// <summary>
+    ///     Creates a service instance from a service descriptor.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="descriptor">The service descriptor.</param>
+    /// <returns>The created service instance.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the service instance cannot be created.</exception>
     private static object CreateService(this IServiceProvider serviceProvider, ServiceDescriptor descriptor)
     {
         return descriptor switch
@@ -139,11 +160,25 @@ public static class ServiceCollectionExtensions
         };
     }
 
+    /// <summary>
+    ///     Creates a service instance of the specified type with custom dependencies.
+    /// </summary>
+    /// <typeparam name="T">The type of the service to create.</typeparam>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="dependencies">The dependencies required by the service.</param>
+    /// <returns>The created service instance.</returns>
     public static T CreateService<T>(this IServiceProvider serviceProvider, params Dependency[] dependencies)
     {
         return (T)serviceProvider.CreateService(typeof(T), dependencies);
     }
 
+    /// <summary>
+    ///     Creates a service instance of the specified type with custom dependencies.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="type">The type of the service to create.</param>
+    /// <param name="dependencies">The dependencies required by the service.</param>
+    /// <returns>The created service instance.</returns>
     public static object CreateService(this IServiceProvider serviceProvider,
         Type type, params Dependency[] dependencies)
     {
