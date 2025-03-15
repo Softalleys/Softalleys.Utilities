@@ -35,6 +35,10 @@
 
     <ItemGroup>
         <PackageReference Include="Humanizer.Core" Version="2.*" />
+        <PackageReference Include="Microsoft.Spatial" Version="8.2.3" />
+        <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+        <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
+        <PackageReference Include="Ulid" Version="1.3.4" />
     </ItemGroup>
 
     <PropertyGroup>
