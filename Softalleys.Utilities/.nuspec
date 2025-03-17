@@ -2,14 +2,14 @@
 <package>
     <metadata>
         <id>Softalleys.Utilities</id>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <authors>Miguel Matthew Montes de Oca Guzmán</authors>
         <owners>Softalleys S.A. de C.V.</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>A collection of utility classes for various purposes.</description>
+        <description>A collection of utility classes featuring OData extensions, GeoJson converters for NetTopologySuite and Microsoft.Spatial, geographical property filters for OData, custom formatters (CSV, CBOR, YAML), and dependency injection for AuthSessionService.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <copyright>Copyright © 2025</copyright>
-        <tags>utilities json validation</tags>
+        <tags>utilities json validation odata geojson csv cbor yaml spatial</tags>
         <license type="expression">MIT</license>
 
         <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
