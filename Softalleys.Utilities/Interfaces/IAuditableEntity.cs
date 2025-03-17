@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an auditable entity that captures creation and update timestamps.
 /// </summary>
-public interface IAuditable
+public interface IAuditableEntity
 {
     /// <summary>
     /// Gets the timestamp that indicates when the entity was created.

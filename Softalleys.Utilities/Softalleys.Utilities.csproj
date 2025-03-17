@@ -8,7 +8,7 @@
 
     <PropertyGroup>
         <PackageId>Softalleys.Utilities</PackageId>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
         <Authors>Miguel Matthew Montes de Oca Guzmán</Authors>
         <Company>Softalleys S.A. de C.V.</Company>
         <PackageProjectUrl>https://github.com/Softalleys/Softalleys.Utilities</PackageProjectUrl>
