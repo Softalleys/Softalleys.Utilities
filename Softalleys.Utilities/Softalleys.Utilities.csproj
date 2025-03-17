@@ -48,7 +48,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.*"/>
         <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.*"/>
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*"/>
-        <PackageReference Include="Microsoft.Spatial" Version="7.21.6"/>
         <PackageReference Include="NetTopologySuite" Version="2.*"/>
         <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.*"/>
         <PackageReference Include="System.Security.Claims" Version="4.*"/>
