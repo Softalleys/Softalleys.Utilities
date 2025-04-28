@@ -153,4 +153,57 @@ public static class GeoJsonExtensions
 
         return factory.Build();
     }
+    public static GeographyMultiPoint ToGeographyMultiPoint(this MultiPoint multiPoint)
+    {
+        var factory = GeographyFactory.MultiPoint();
+
+        foreach (var coordinate in multiPoint.Coordinates)
+        {
+            // Note the swap: X is longitude, Y is latitude in geography context
+            factory.Point(coordinate.Y, coordinate.X);
+        }
+
+        return factory.Build();
+    }
+
+    public static MultiPoint ToNetTopologyMultiPoint(this GeographyMultiPoint geographyMultiPoint)
+    {
+        var geometryFactory = new  NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var coordinates = new List<Coordinate>();
+
+        foreach (var point in geographyMultiPoint.Points)
+        {
+            // Note the swap: Longitude is X, Latitude is Y in NetTopologySuite
+            coordinates.Add(new Coordinate(point.Longitude, point.Latitude));
+        }
+
+        return geometryFactory.CreateMultiPointFromCoords(coordinates.ToArray());
+    }
+
+    public static GeographyLineString ToGeographyLineString(this LineString lineString)
+    {
+        var factory = GeographyFactory.LineString(CoordinateSystem.Geography(null));
+
+        foreach (var coordinate in lineString.Coordinates)
+        {
+            // Note the swap: X is longitude, Y is latitude in geography context
+            factory.LineTo(coordinate.Y, coordinate.X);
+        }
+
+        return factory.Build();
+    }
+
+    public static LineString ToNetTopologyLineString(this GeographyLineString geographyLineString)
+    {
+        var geometryFactory = new  NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var coordinates = new List<Coordinate>();
+
+        foreach (var point in geographyLineString.Points)
+        {
+            // Note the swap: Longitude is X, Latitude is Y in NetTopologySuite
+            coordinates.Add(new Coordinate(point.Longitude, point.Latitude));
+        }
+
+        return geometryFactory.CreateLineString(coordinates.ToArray());
+    }
 }
