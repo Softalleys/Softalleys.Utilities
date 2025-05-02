@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <package>
     <metadata>
-        <id>Softalleys.Utilities</id>
-        <version>1.0.5</version>
+        <id>Softalleys.Utilities.Protobuf</id>
+        <version>1.0.0</version>
         <authors>Miguel Matthew Montes de Oca Guzmán</authors>
         <owners>Softalleys S.A. de C.V.</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>A collection of utility classes featuring OData extensions, GeoJson converters for NetTopologySuite and Microsoft.Spatial, geographical property filters for OData, custom formatters (CSV, CBOR, YAML), and dependency injection for AuthSessionService.</description>
+        <description>A collection of extensions for converting NetTopologySuite to Protobuf ByteString and vise versa.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <copyright>Copyright © 2025</copyright>
-        <tags>utilities json validation odata geojson csv cbor yaml spatial</tags>
+        <tags>utilities NetTopologySuite protobuf spatial</tags>
         <license type="expression">MIT</license>
-
         <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
         <repository type="git" url="https://github.com/Softalleys/Softalleys.Utilities" />
+        <readme>README.md</readme>
     </metadata>
 </package>

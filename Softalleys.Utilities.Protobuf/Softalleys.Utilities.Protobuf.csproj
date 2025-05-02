@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>Softalleys.Utilities.Protobuf</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Miguel Matthew Montes de Oca Guzmán</Authors>
+        <Company>Softalleys S.A. de C.V.</Company>
+        <PackageProjectUrl>https://github.com/Softalleys/Softalleys.Utilities</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Softalleys/Softalleys.Utilities</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright © 2025</Copyright>
+        <PackageTags>utilities NetTopologySuite protobuf spatial</PackageTags>
+        <Description>A collection of extensions for converting NetTopologySuite to Protobuf ByteString and vise versa.</Description>
+        <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+
+        <!-- Allow XML documentation to be included in the NuGet package -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- Suppress XML documentation warnings during build -->
+        <NoWarn>$(NoWarn);CS1591;CS1572;CS1573;CS0419</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Protobuf" Version="3.*" />
+      <PackageReference Include="NetTopologySuite" Version="2.*" />
+      <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.*" />
+      <None Include="README.md" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+</Project>
