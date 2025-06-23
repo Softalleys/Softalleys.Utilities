@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities", "Sof
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.Protobuf", "Softalleys.Utilities.Protobuf\Softalleys.Utilities.Protobuf.csproj", "{8BA228C0-E422-4892-9D40-83F374744B45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.GeoToolkit", "Softalleys.Utilities.GeoToolkit\Softalleys.Utilities.GeoToolkit.csproj", "{5AC440EC-9714-4714-A3BA-39EFD492E565}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.GeoToolkit.Tests", "Softalleys.Utilities.GeoToolkit.Tests\Softalleys.Utilities.GeoToolkit.Tests.csproj", "{F021C283-F83E-45AD-878B-5F329ED55BB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{8BA228C0-E422-4892-9D40-83F374744B45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BA228C0-E422-4892-9D40-83F374744B45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BA228C0-E422-4892-9D40-83F374744B45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AC440EC-9714-4714-A3BA-39EFD492E565}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AC440EC-9714-4714-A3BA-39EFD492E565}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AC440EC-9714-4714-A3BA-39EFD492E565}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AC440EC-9714-4714-A3BA-39EFD492E565}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
