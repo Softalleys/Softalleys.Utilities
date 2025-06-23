@@ -1,14 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    <PropertyGroup>
+        <PackageId>Softalleys.Utilities.GeoToolkit</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Miguel Matthew Montes de Oca Guzmán</Authors>
+        <Company>Softalleys S.A. de C.V.</Company>
+        <PackageProjectUrl>https://github.com/Softalleys/Softalleys.Utilities.GeoToolkit</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Softalleys/Softalleys.Utilities.GeoToolkit</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright © 2025</Copyright>
+        <PackageTags>geocoding geolocation nominatim geospatial maps coordinates spatial</PackageTags>
+        <Description>A .NET library providing geocoding services with forward/reverse geocoding capabilities, place lookups, and geographic search functionality. Compatible with various geocoding providers including Nominatim.</Description>
+        <PackageReleaseNotes>Initial release of the GeoToolkit library.</PackageReleaseNotes>
 
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
-      <PackageReference Include="System.Net.Http" Version="4.3.4" />
+        <!-- Allow XML documentation to be included in the NuGet package -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- Suppress XML documentation warnings during build -->
+        <NoWarn>$(NoWarn);CS1591;CS1572;CS1573;CS0419</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.*"/>
+        <PackageReference Include="System.Net.Http" Version="4.*"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <PackageReference Include="Microsoft.Extensions.Http" Version="8.*"/>
+        <PackageReference Include="System.Net.Http" Version="4.*"/>
     </ItemGroup>
 
+
+    <ItemGroup>
+        <None Include="LICENSE" Pack="true" PackagePath=""/>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 </Project>
