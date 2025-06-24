@@ -72,7 +72,14 @@ public class AuthSessionService(
         {
             PreferredUsername = principal.FindFirstValue("name") ?? principal.FindFirstValue("sub").NotNull("sub"),
             Username = principal.FindFirstValue("username").NotNull("username"),
-            Email = principal.FindFirstValue("email") ?? string.Empty
+            Email = principal.FindFirstValue("email") ?? string.Empty,
+
+            Scopes = principal.Claims.Where(c => c.Type == "scope")
+				.Select(c => c.Value)
+				.ToArray(),
+            Roles = principal.Claims.Where(c => c.Type == "role")
+	            .Select(c => c.Value)
+	            .ToArray()
         };
 
         return authSession;

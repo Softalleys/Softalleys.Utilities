@@ -103,4 +103,16 @@ public record AuthSession(
     /// The IP address from which the session was initiated.
     /// </summary>
     public string IpAddress { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The set of scopes granted to the user for this session.
+    /// Scopes define the permissions or access rights the user has within the application.
+    /// </summary>
+    public IList<string> Scopes { get; init; } = new List<string>();
+
+    /// <summary>
+    /// The set of roles assigned to the user for this session.
+    /// Roles represent the user's responsibilities or access levels within the system.
+    /// </summary>
+    public IList<string> Roles { get; init; } = new List<string>();
 }

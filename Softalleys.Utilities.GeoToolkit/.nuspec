@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Softalleys.Utilities.GeoToolkit</id>
+    <version>1.0.0</version>
+    <authors>Miguel Matthew Montes de Oca Guzmán</authors>
+    <owners>Softalleys S.A. de C.V.</owners>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <repository type="git" url="https://github.com/Softalleys/Softalleys.Utilities" />
+    <readme>README.md</readme>
+    <description>A .NET library providing geocoding services with forward/reverse geocoding, place lookups, and geographic search functionality. Compatible with various geocoding providers including Nominatim.</description>
+    <releaseNotes>Initial release of the GeoToolkit library.</releaseNotes>
+    <copyright>Copyright © 2025</copyright>
+    <tags>geocoding geolocation nominatim geospatial maps coordinates spatial</tags>
+  </metadata>
+</package>
