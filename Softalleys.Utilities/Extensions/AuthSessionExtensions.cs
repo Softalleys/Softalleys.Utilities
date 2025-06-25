@@ -31,9 +31,19 @@ public static class AuthSessionExtensions
     /// <returns><c>true</c> if the session contains all scopes; otherwise, <c>false</c>.</returns>
     public static bool HasScopes(this AuthSession? session, params string[] scopes)
     {
-        if (session is null || scopes.Length == 0)
+        if (session is null)
         {
             return false;
+        }
+
+        if (scopes.Length == 0 && session.Scopes.Count > 0)
+        {
+            return true; // If no scopes are provided, but session has scopes, return true
+        }
+
+        if (scopes.Length == 0 || session.Scopes.Count == 0)
+        {
+            return false; // If no scopes are provided or session has no scopes, return false
         }
 
         return scopes.All(scope => session.Scopes.Contains(scope));
@@ -47,9 +57,19 @@ public static class AuthSessionExtensions
     /// <returns><c>true</c> if the session contains any scope; otherwise, <c>false</c>.</returns>
     public static bool HasAnyScope(this AuthSession? session, params string[] scopes)
     {
-        if (session is null || scopes.Length == 0)
+        if (session is null)
         {
             return false;
+        }
+
+        if (scopes.Length == 0 && session.Scopes.Count > 0)
+        {
+            return true; // If no scopes are provided, but session has scopes, return true
+        }
+
+        if (scopes.Length == 0 || session.Scopes.Count == 0)
+        {
+            return false; // If no scopes are provided or session has no scopes, return false
         }
 
         return scopes.Any(scope => session.Scopes.Contains(scope));
@@ -127,9 +147,19 @@ public static class AuthSessionExtensions
     /// <returns><c>true</c> if the session contains all roles; otherwise, <c>false</c>.</returns>
     public static bool HasRoles(this AuthSession? session, params string[] roles)
     {
-        if (session is null || roles.Length == 0)
+        if (session is null)
         {
             return false;
+        }
+
+        if (roles.Length == 0 && session.Roles.Count > 0)
+        {
+            return true; // If no roles are provided, but session has roles, return true
+        }
+
+        if (roles.Length == 0 || session.Roles.Count == 0)
+        {
+            return false; // If no roles are provided or session has no roles, return false
         }
 
         return roles.All(role => session.Roles.Contains(role));
@@ -146,6 +176,16 @@ public static class AuthSessionExtensions
         if (session is null || roles.Length == 0)
         {
             return false;
+        }
+
+        if (roles.Length == 0 && session.Roles.Count > 0)
+        {
+            return true; // If no roles are provided, but session has roles, return true
+        }
+
+        if (roles.Length == 0 || session.Roles.Count == 0)
+        {
+            return false; // If no roles are provided or session has no roles, return false
         }
 
         return roles.Any(role => session.Roles.Contains(role));
