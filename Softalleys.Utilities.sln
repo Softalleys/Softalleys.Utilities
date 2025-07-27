@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.GeoToo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.GeoToolkit.Tests", "Softalleys.Utilities.GeoToolkit.Tests\Softalleys.Utilities.GeoToolkit.Tests.csproj", "{F021C283-F83E-45AD-878B-5F329ED55BB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Softalleys.Utilities.Whatsapp", "Softalleys.Utilities.Whatsapp\Softalleys.Utilities.Whatsapp.csproj", "{9FE2527D-65E7-4F9A-A671-0E36165783F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F021C283-F83E-45AD-878B-5F329ED55BB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FE2527D-65E7-4F9A-A671-0E36165783F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FE2527D-65E7-4F9A-A671-0E36165783F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FE2527D-65E7-4F9A-A671-0E36165783F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FE2527D-65E7-4F9A-A671-0E36165783F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
