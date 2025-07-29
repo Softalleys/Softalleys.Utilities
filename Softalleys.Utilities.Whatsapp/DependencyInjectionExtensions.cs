@@ -98,14 +98,6 @@ public static class DependencyInjectionExtensions
 
     private static void AddWhatsappHttpClient(this IServiceCollection services)
     {
-        services.AddHttpClient();
-        services.AddHttpClient<IWhatsappMessageService, WhatsappBusinessMessageService>()
-            .ConfigureHttpClient((serviceProvider, client) =>
-            {
-                var options = serviceProvider.GetRequiredService<IOptions<WhatsappBusinessOptions>>().Value;
-                client.BaseAddress = new Uri(options.BaseUrl);
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.Token}");
-            });
         services.AddHttpClient("WhatsappBusinessApi")
             .ConfigureHttpClient((serviceProvider, client) =>
             {
