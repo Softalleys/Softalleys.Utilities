@@ -408,6 +408,59 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    ///     Automatically discovers and registers all implementations of a generic interface from the provided assemblies.
+    ///     For each distinct generic type parameter T, finds implementations and registers them with appropriate lifetime.
+    ///     Example: For IEntity&lt;T&gt;, finds UserEntity : IEntity&lt;User&gt;, ProductEntity : IEntity&lt;Product&gt;, etc.
+    /// </summary>
+    /// <typeparam name="TInterface">The generic interface type to find implementations for (e.g., IEntity&lt;&gt;, IRepository&lt;&gt;).</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add the services to.</param>
+    /// <param name="assemblies">The assemblies to search for implementations.</param>
+    /// <returns>The updated <see cref="IServiceCollection" />.</returns>
+    /// <exception cref="ArgumentException">Thrown when TInterface is not a generic type definition.</exception>
+    public static IServiceCollection AddGenericServiceFromAssembly<TInterface>(this IServiceCollection services,
+        params Assembly[] assemblies)
+        where TInterface : class
+    {
+        var interfaceType = typeof(TInterface);
+        
+        // Ensure TInterface is a generic type definition
+        if (!interfaceType.IsGenericTypeDefinition)
+        {
+            throw new ArgumentException(
+                $"The type {interfaceType.Name} must be a generic type definition (e.g., IEntity<> or IRepository<>). " +
+                "Use AddServiceFromAssembly for non-generic interfaces.", 
+                nameof(TInterface));
+        }
+
+        // Find all implementations of the generic interface with different type parameters
+        var implementations = FindGenericImplementations<TInterface>(assemblies);
+
+        if (implementations.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"No implementations found for generic interface {interfaceType.Name} in the provided assemblies: " +
+                $"{string.Join(", ", assemblies.Select(a => a.GetName().Name))}");
+        }
+
+        // Register each implementation with its specific generic interface
+        foreach (var (serviceInterface, implementationType) in implementations)
+        {
+            // Skip if already registered
+            if (services.Any(descriptor => descriptor.ServiceType == serviceInterface && 
+                                         descriptor.ImplementationType == implementationType))
+            {
+                continue;
+            }
+
+            var lifetime = DetermineServiceLifetime(implementationType, services);
+            var descriptor = new ServiceDescriptor(serviceInterface, implementationType, lifetime);
+            services.Add(descriptor);
+        }
+
+        return services;
+    }
+
 
 
 
@@ -460,6 +513,43 @@ public static class ServiceCollectionExtensions
                           serviceType.IsAssignableFrom(type) &&
                           type != serviceType) // Exclude the interface itself
             .ToArray();
+    }
+
+    /// <summary>
+    ///     Finds all implementations of a generic interface with different type parameters in the provided assemblies.
+    /// </summary>
+    /// <typeparam name="TInterface">The generic interface type definition to find implementations for.</typeparam>
+    /// <param name="assemblies">The assemblies to search for implementations.</param>
+    /// <returns>A list of tuples containing the concrete service interface and its implementation type.</returns>
+    private static List<(Type ServiceInterface, Type ImplementationType)> FindGenericImplementations<TInterface>(Assembly[] assemblies)
+        where TInterface : class
+    {
+        var genericInterfaceDefinition = typeof(TInterface);
+        var implementations = new List<(Type ServiceInterface, Type ImplementationType)>();
+
+        var allTypes = assemblies
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type.IsClass && !type.IsAbstract)
+            .ToArray();
+
+        foreach (var implementationType in allTypes)
+        {
+            // Get all interfaces this type implements
+            var interfaces = implementationType.GetInterfaces();
+            
+            foreach (var interfaceType in interfaces)
+            {
+                // Check if this interface is a constructed generic type of our target interface
+                if (interfaceType.IsGenericType && 
+                    interfaceType.GetGenericTypeDefinition() == genericInterfaceDefinition)
+                {
+                    // Add the specific constructed interface and implementation
+                    implementations.Add((interfaceType, implementationType));
+                }
+            }
+        }
+
+        return implementations;
     }
 
     /// <summary>

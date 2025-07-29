@@ -2,5 +2,9 @@
 
 public enum WhatsappMessageStatus
 {
-    
+    Accepted,
+    Queued,
+    Sending,
+    Failed,
+    AuthError
 }
