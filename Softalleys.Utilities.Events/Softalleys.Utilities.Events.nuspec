@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Softalleys.Utilities.Events</id>
+    <version>1.0.0</version>
+    <authors>Softalleys</authors>
+    <owners>Softalleys</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <description>A lightweight, flexible event-driven architecture library for .NET applications. Provides event handling with proper dependency injection scope management, pre/post processing pipelines, and both scoped and singleton handler support.</description>
+    <releaseNotes>Initial release of Softalleys.Utilities.Events.</releaseNotes>
+    <tags>events event-driven architecture dependency-injection mediator cqrs softalleys</tags>
+    <repository type="git" url="https://github.com/Softalleys/Softalleys.Utilities" />
+    <readme>README.md</readme>
+  </metadata>
+  <files>
+    <file src="README.md" target="README.md" />
+    <file src="LICENSE" target="LICENSE" />
+    <file src="bin\Release\net9.0\*.dll" target="lib\net9.0" />
+    <file src="bin\Release\net9.0\*.xml" target="lib\net9.0" />
+  </files>
+</package>
