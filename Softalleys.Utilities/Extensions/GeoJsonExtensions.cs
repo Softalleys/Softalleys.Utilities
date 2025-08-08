@@ -12,6 +12,62 @@ namespace Softalleys.Utilities.Extensions;
 public static class GeoJsonExtensions
 {
     /// <summary>
+    /// Converts a NetTopologySuite <see cref="Point"/> to a <see cref="GeometryPoint"/>.
+    /// </summary>
+    /// <param name="point">The point to convert.</param>
+    /// <returns>A <see cref="GeometryPoint"/> created from the point's coordinates.</returns>
+    public static GeometryPoint ToGeometryPointFromNetTopology(this Point point)
+    {
+        return GeometryPoint.Create(point.X, point.Y);
+    }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="Polygon"/> to a <see cref="GeometryPolygon"/>.
+    /// </summary>
+    /// <param name="polygon">The polygon to convert.</param>
+    /// <returns>A <see cref="GeometryPolygon"/> constructed from the polygon's coordinates.</returns>
+    public static GeometryPolygon ToGeometryPolygonFromNetTopology(this Polygon polygon)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.Polygon(CoordinateSystem.Geography(null));
+        factory.Ring(polygon.Coordinate.X, polygon.Coordinate.Y);
+        foreach (var c in polygon.Coordinates)
+        {
+            factory.LineTo(c.X, c.Y);
+        }
+        return factory.Build();
+    }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="MultiPoint"/> to a <see cref="GeometryMultiPoint"/>.
+    /// </summary>
+    /// <param name="multiPoint">The multi-point geometry to convert.</param>
+    /// <returns>A <see cref="GeometryMultiPoint"/> constructed from the multi-point's coordinates.</returns>
+    public static GeometryMultiPoint ToGeometryMultiPointFromNetTopology(this MultiPoint multiPoint)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.MultiPoint(CoordinateSystem.Geography(null));
+        foreach (var coordinate in multiPoint.Coordinates)
+        {
+            factory.Point(coordinate.X, coordinate.Y);
+        }
+        return factory.Build();
+    }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="LineString"/> to a <see cref="GeometryLineString"/>.
+    /// </summary>
+    /// <param name="lineString">The line string geometry to convert.</param>
+    /// <returns>A <see cref="GeometryLineString"/> constructed from the line string's coordinates.</returns>
+    public static GeometryLineString ToGeometryLineStringFromNetTopology(this LineString lineString)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.LineString(CoordinateSystem.Geography(null));
+        foreach (var coordinate in lineString.Coordinates)
+        {
+            factory.LineTo(coordinate.X, coordinate.Y);
+        }
+        return factory.Build();
+    }
+
+    /// <summary>
     /// Converts a <see cref="GeographyPoint"/> to a NetTopologySuite <see cref="Point"/>.
     /// </summary>
     /// <param name="geographyPoint">The geography point to convert.</param>
@@ -137,6 +193,23 @@ public static class GeoJsonExtensions
     }
 
     /// <summary>
+    /// Converts a <see cref="GeometryPolygon"/> to a NetTopologySuite <see cref="Polygon"/>.
+    /// </summary>
+    /// <param name="geometryPolygon">The geometry polygon to convert.</param>
+    /// <returns>A <see cref="Polygon"/> created from the geometry polygon's rings.</returns>
+    public static Polygon ToNetTopologyPolygon(this GeometryPolygon geometryPolygon)
+    {
+        var linearRings = geometryPolygon.Rings.Select(ring =>
+                new LinearRing(ring.Points.Select(x =>
+                        new Coordinate(x.X, x.Y))
+                    .ToArray()))
+            .ToList();
+
+        var polygon = new Polygon(linearRings.First());
+        return polygon;
+    }
+
+    /// <summary>
     /// Converts a NetTopologySuite <see cref="Polygon"/> to a <see cref="GeographyPolygon"/>.
     /// </summary>
     /// <param name="polygon">The polygon to convert.</param>
@@ -153,6 +226,30 @@ public static class GeoJsonExtensions
 
         return factory.Build();
     }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="Polygon"/> to a <see cref="GeometryPolygon"/>.
+    /// </summary>
+    /// <param name="polygon">The polygon to convert.</param>
+    /// <returns>A <see cref="GeometryPolygon"/> constructed from the polygon's coordinates.</returns>
+    public static GeometryPolygon ToGeometryPolygon(this Polygon polygon)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.Polygon(CoordinateSystem.Geography(null));
+        factory.Ring(polygon.Coordinate.Y, polygon.Coordinate.X);
+
+        foreach (var c in polygon.Coordinates)
+        {
+            factory.LineTo(c.Y, c.X);
+        }
+
+        return factory.Build();
+    }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="MultiPoint"/> to a <see cref="GeographyMultiPoint"/>.
+    /// </summary>
+    /// <param name="multiPoint">The multi-point geometry to convert.</param>
+    /// <returns>A <see cref="GeographyMultiPoint"/> constructed from the multi-point's coordinates.</returns>
     public static GeographyMultiPoint ToGeographyMultiPoint(this MultiPoint multiPoint)
     {
         var factory = GeographyFactory.MultiPoint();
@@ -166,9 +263,32 @@ public static class GeoJsonExtensions
         return factory.Build();
     }
 
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="MultiPoint"/> to a <see cref="GeometryMultiPoint"/>.
+    /// </summary>
+    /// <param name="multiPoint">The multi-point geometry to convert.</param>
+    /// <returns>A <see cref="GeometryMultiPoint"/> constructed from the multi-point's coordinates.</returns>
+    public static GeometryMultiPoint ToGeometryMultiPoint(this MultiPoint multiPoint)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.MultiPoint(CoordinateSystem.Geography(null));
+
+        foreach (var coordinate in multiPoint.Coordinates)
+        {
+            // Note the swap: X is longitude, Y is latitude in geography context
+            factory.Point(coordinate.Y, coordinate.X);
+        }
+
+        return factory.Build();
+    }
+
+    /// <summary>
+    /// Converts a <see cref="GeographyMultiPoint"/> to a NetTopologySuite <see cref="MultiPoint"/>.
+    /// </summary>
+    /// <param name="geographyMultiPoint">The geography multi-point to convert.</param>
+    /// <returns>A <see cref="MultiPoint"/> created from the geography multi-point's coordinates.</returns>
     public static MultiPoint ToNetTopologyMultiPoint(this GeographyMultiPoint geographyMultiPoint)
     {
-        var geometryFactory = new  NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var geometryFactory = new NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
         var coordinates = new List<Coordinate>();
 
         foreach (var point in geographyMultiPoint.Points)
@@ -180,6 +300,30 @@ public static class GeoJsonExtensions
         return geometryFactory.CreateMultiPointFromCoords(coordinates.ToArray());
     }
 
+    /// <summary>
+    /// Converts a <see cref="GeometryMultiPoint"/> to a NetTopologySuite <see cref="MultiPoint"/>.
+    /// </summary>
+    /// <param name="geometryMultiPoint">The geometry multi-point to convert.</param>
+    /// <returns>A <see cref="MultiPoint"/> created from the geometry multi-point's coordinates.</returns>
+    public static MultiPoint ToNetTopologyMultiPoint(this GeometryMultiPoint geometryMultiPoint)
+    {
+        var geometryFactory = new NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var coordinates = new List<Coordinate>();
+
+        foreach (var point in geometryMultiPoint.Points)
+        {
+            // Note the swap: Longitude is X, Latitude is Y in NetTopologySuite
+            coordinates.Add(new Coordinate(point.X, point.Y));
+        }
+
+        return geometryFactory.CreateMultiPointFromCoords(coordinates.ToArray());
+    }
+
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="LineString"/> to a <see cref="GeographyLineString"/>.
+    /// </summary>
+    /// <param name="lineString">The line string geometry to convert.</param>
+    /// <returns>A <see cref="GeographyLineString"/> constructed from the line string's coordinates.</returns>
     public static GeographyLineString ToGeographyLineString(this LineString lineString)
     {
         var factory = GeographyFactory.LineString(CoordinateSystem.Geography(null));
@@ -193,15 +337,57 @@ public static class GeoJsonExtensions
         return factory.Build();
     }
 
+    /// <summary>
+    /// Converts a NetTopologySuite <see cref="LineString"/> to a <see cref="GeometryLineString"/>.
+    /// </summary>
+    /// <param name="lineString">The line string geometry to convert.</param>
+    /// <returns>A <see cref="GeometryLineString"/> constructed from the line string's coordinates.</returns>
+    public static GeometryLineString ToGeometryLineString(this LineString lineString)
+    {
+        var factory = Microsoft.Spatial.GeometryFactory.LineString(CoordinateSystem.Geography(null));
+
+        foreach (var coordinate in lineString.Coordinates)
+        {
+            // Note the swap: X is longitude, Y is latitude in geography context
+            factory.LineTo(coordinate.Y, coordinate.X);
+        }
+
+        return factory.Build();
+    }
+
+    /// <summary>
+    /// Converts a <see cref="GeographyLineString"/> to a NetTopologySuite <see cref="LineString"/>.
+    /// </summary>
+    /// <param name="geographyLineString">The geography line string to convert.</param>
+    /// <returns>A <see cref="LineString"/> created from the geography line string's coordinates.</returns>
     public static LineString ToNetTopologyLineString(this GeographyLineString geographyLineString)
     {
-        var geometryFactory = new  NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var geometryFactory = new NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
         var coordinates = new List<Coordinate>();
 
         foreach (var point in geographyLineString.Points)
         {
             // Note the swap: Longitude is X, Latitude is Y in NetTopologySuite
             coordinates.Add(new Coordinate(point.Longitude, point.Latitude));
+        }
+
+        return geometryFactory.CreateLineString(coordinates.ToArray());
+    }
+
+    /// <summary>
+    /// Converts a <see cref="GeometryLineString"/> to a NetTopologySuite <see cref="LineString"/>.
+    /// </summary>
+    /// <param name="geometryLineString">The geometry line string to convert.</param>
+    /// <returns>A <see cref="LineString"/> created from the geometry line string's coordinates.</returns>
+    public static LineString ToNetTopologyLineString(this GeometryLineString geometryLineString)
+    {
+        var geometryFactory = new NetTopologySuite.Geometries.GeometryFactory(new PrecisionModel(), 4326);
+        var coordinates = new List<Coordinate>();
+
+        foreach (var point in geometryLineString.Points)
+        {
+            // Note the swap: Longitude is X, Latitude is Y in NetTopologySuite
+            coordinates.Add(new Coordinate(point.X, point.Y));
         }
 
         return geometryFactory.CreateLineString(coordinates.ToArray());
