@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Softalleys.Utilities.Queries</PackageId>
-  <Version>1.0.1</Version>
+  <Version>1.0.2</Version>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>A lightweight CQRS query dispatcher with scoped and singleton handler lifetimes, streaming support, and DI scanning.</Description>
