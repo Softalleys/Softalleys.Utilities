@@ -46,44 +46,28 @@ public class OrderCreatedEvent : IEvent
 
 ```csharp
 // Scoped handler - has access to current request scope (DbContext, etc.)
-public class UserRegisteredEmailHandler : IEventHandler<UserRegisteredEvent>
+public class UserRegisteredEmailHandler(IEmailService emailService, IDbContext dbContext) : IEventHandler<UserRegisteredEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly IDbContext _dbContext;
-
-    public UserRegisteredEmailHandler(IEmailService emailService, IDbContext dbContext)
-    {
-        _emailService = emailService;
-        _dbContext = dbContext;
-    }
-
     public async Task HandleAsync(UserRegisteredEvent eventData, CancellationToken cancellationToken = default)
     {
-        await _emailService.SendWelcomeEmailAsync(eventData.Email, cancellationToken);
+        await emailService.SendWelcomeEmailAsync(eventData.Email, cancellationToken);
         
         // Can access scoped services like DbContext
-        var user = await _dbContext.Users.FindAsync(eventData.UserId);
+        var user = await dbContext.Users.FindAsync(eventData.UserId);
         if (user != null)
         {
             user.EmailSent = true;
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
 
 // Singleton handler - for stateless operations like logging
-public class UserRegisteredLoggerHandler : IEventSingletonHandler<UserRegisteredEvent>
+public class UserRegisteredLoggerHandler(ILogger<UserRegisteredLoggerHandler> logger) : IEventSingletonHandler<UserRegisteredEvent>
 {
-    private readonly ILogger<UserRegisteredLoggerHandler> _logger;
-
-    public UserRegisteredLoggerHandler(ILogger<UserRegisteredLoggerHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task HandleAsync(UserRegisteredEvent eventData, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("User {UserId} registered at {RegisteredAt}", 
+        logger.LogInformation("User {UserId} registered at {RegisteredAt}", 
             eventData.UserId, eventData.RegisteredAt);
         
         await Task.CompletedTask;
@@ -91,34 +75,20 @@ public class UserRegisteredLoggerHandler : IEventSingletonHandler<UserRegistered
 }
 
 // Pre-processing handler - runs before main handlers
-public class UserValidationPreHandler : IEventPreHandler<UserRegisteredEvent>
+public class UserValidationPreHandler(IUserValidationService validationService) : IEventPreHandler<UserRegisteredEvent>
 {
-    private readonly IUserValidationService _validationService;
-
-    public UserValidationPreHandler(IUserValidationService validationService)
-    {
-        _validationService = validationService;
-    }
-
     public async Task HandleAsync(UserRegisteredEvent eventData, CancellationToken cancellationToken = default)
     {
-        await _validationService.ValidateUserAsync(eventData.UserId, cancellationToken);
+        await validationService.ValidateUserAsync(eventData.UserId, cancellationToken);
     }
 }
 
 // Post-processing handler - runs after main handlers
-public class UserAnalyticsPostHandler : IEventPostSingletonHandler<UserRegisteredEvent>
+public class UserAnalyticsPostHandler(IAnalyticsService analyticsService) : IEventPostSingletonHandler<UserRegisteredEvent>
 {
-    private readonly IAnalyticsService _analyticsService;
-
-    public UserAnalyticsPostHandler(IAnalyticsService analyticsService)
-    {
-        _analyticsService = analyticsService;
-    }
-
     public async Task HandleAsync(UserRegisteredEvent eventData, CancellationToken cancellationToken = default)
     {
-        await _analyticsService.TrackUserRegistrationAsync(eventData.UserId, cancellationToken);
+        await analyticsService.TrackUserRegistrationAsync(eventData.UserId, cancellationToken);
     }
 }
 ```
@@ -141,15 +111,8 @@ builder.Services.AddSoftalleysEvents(
 ### 4. Publish Events
 
 ```csharp
-public class UserController : ControllerBase
+public class UserController(IEventBus eventBus) : ControllerBase
 {
-    private readonly IEventBus _eventBus;
-
-    public UserController(IEventBus eventBus)
-    {
-        _eventBus = eventBus;
-    }
-
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
@@ -164,7 +127,7 @@ public class UserController : ControllerBase
             RegisteredAt = DateTime.UtcNow
         };
 
-        await _eventBus.PublishAsync(userRegisteredEvent);
+        await eventBus.PublishAsync(userRegisteredEvent);
 
         return Ok(new { UserId = userId });
     }

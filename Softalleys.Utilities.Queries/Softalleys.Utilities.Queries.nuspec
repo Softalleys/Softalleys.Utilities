@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Softalleys.Utilities.Queries</id>
+    <version>1.0.0</version>
+    <authors>Softalleys</authors>
+    <owners>Softalleys</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <description>A lightweight CQRS query dispatcher with scoped and singleton handler lifetimes, streaming support, and DI scanning for .NET.</description>
+    <releaseNotes>Initial release of Softalleys.Utilities.Queries.</releaseNotes>
+    <tags>cqrs queries mediator dependency-injection streaming softalleys</tags>
+    <repository type="git" url="https://github.com/Softalleys/Softalleys.Utilities" />
+    <readme>README.md</readme>
+  </metadata>
+  <files>
+    <file src="README.md" target="README.md" />
+    <file src="LICENSE" target="LICENSE" />
+    <file src="bin\Release\net9.0\*.dll" target="lib\net9.0" />
+    <file src="bin\Release\net9.0\*.xml" target="lib\net9.0" />
+  </files>
+</package>
