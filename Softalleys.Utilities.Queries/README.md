@@ -109,7 +109,7 @@ public record GetVersion() : IQuery<string>;
 public class GetVersionHandler : IQuerySingletonHandler<GetVersion, string>
 {
 	public Task<string> HandleAsync(GetVersion query, CancellationToken ct = default)
-		=> Task.FromResult("1.0.0");
+		=> Task.FromResult("1.0.1");
 }
 ```
 
@@ -122,30 +122,6 @@ public class GetVersionHandler : IQuerySingletonHandler<GetVersion, string>
 
 - Handlers are plain classes and easy to unit test in isolation.
 - The dispatcher can be integration-tested by composing a minimal `ServiceCollection`, calling `AddSoftalleysQueries`, and asserting behavior.
-
-## Packaging and publishing
-
-This project is multi-targeted for .NET 8 and .NET 9 and includes conditional dependencies. It also ships a `.nuspec` file if you prefer packing from nuspec. Typical flows:
-
-Option A: pack via the project file
-
-```pwsh
-dotnet pack .\Softalleys.Utilities.Queries\Softalleys.Utilities.Queries.csproj -c Release
-```
-
-Option B: pack via the nuspec (requires NuGet CLI)
-
-```pwsh
-nuget pack .\Softalleys.Utilities.Queries\Softalleys.Utilities.Queries.nuspec -Properties Configuration=Release
-```
-
-Then push:
-
-```pwsh
-dotnet nuget push .\Softalleys.Utilities.Queries\bin\Release\Softalleys.Utilities.Queries.*.nupkg --source https://api.nuget.org/v3/index.json --api-key <YOUR_KEY>
-```
-
----
 
 ## Objectives (design summary)
 
