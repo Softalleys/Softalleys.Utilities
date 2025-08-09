@@ -31,7 +31,7 @@ public class QueryDispatcher : IQueryDispatcher
         return await task.ConfigureAwait(false);
     }
 
-    public IAsyncEnumerable<TResponse> DispatchStreamAsync<TResponse>(IQuery<IAsyncEnumerable<TResponse>> query, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<TResponse> DispatchStreamAsync<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default)
     {
         if (query is null) throw new ArgumentNullException(nameof(query));
 
@@ -46,7 +46,7 @@ public class QueryDispatcher : IQueryDispatcher
             throw new InvalidOperationException($"No stream handler registered for {query.GetType().Name} -> IAsyncEnumerable<{typeof(TResponse).Name}>");
         }
 
-        var method = handlerType.GetMethod("HandleAsync")!;
+        var method = handlerType.GetMethod("StreamAsync")!;
         var sequence = (IAsyncEnumerable<TResponse>)method.Invoke(handler, new object[] { query, cancellationToken })!;
 
         return WrapWithScope(sequence, scope, cancellationToken);

@@ -14,11 +14,11 @@ public class DispatcherTests
             => Task.FromResult($"pong:{query.Message}:{InstanceId}");
     }
 
-    private class Counter : IQuery<IAsyncEnumerable<int>> { public int Count { get; init; } }
+    private class Counter : IQuery<int> { public int Count { get; init; } }
 
     private class CounterStreamHandler : IQueryStreamHandler<Counter, int>
     {
-        public async IAsyncEnumerable<int> HandleAsync(Counter query, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<int> StreamAsync(Counter query, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             for (var i = 0; i < query.Count; i++)
             {
@@ -37,6 +37,26 @@ public class DispatcherTests
     }
 
     private class NoHandler : IQuery<string> { }
+
+    // Same query type used for both single and stream handlers
+    private class Echo : IQuery<string> { public string Text { get; init; } = string.Empty; }
+    private class EchoHandler : IQueryHandler<Echo, string>
+    {
+        public Task<string> HandleAsync(Echo query, CancellationToken cancellationToken = default)
+            => Task.FromResult(query.Text);
+    }
+    private class EchoStreamHandler : IQueryStreamHandler<Echo, string>
+    {
+        public async IAsyncEnumerable<string> StreamAsync(Echo query, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            foreach (var ch in query.Text)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return ch.ToString();
+                await Task.Yield();
+            }
+        }
+    }
 
     [Fact]
     public async Task DispatchAsync_Returns_Handler_Result()
@@ -92,7 +112,7 @@ public class DispatcherTests
 
         var dispatcher = services.GetRequiredService<IQueryDispatcher>();
         var results = new List<int>();
-        await foreach (var v in dispatcher.DispatchStreamAsync<int>(new Counter { Count = 3 }))
+    await foreach (var v in dispatcher.DispatchStreamAsync<int>(new Counter { Count = 3 }))
         {
             results.Add(v);
         }
@@ -111,5 +131,25 @@ public class DispatcherTests
         {
             await dispatcher.DispatchAsync(new NoHandler());
         });
+    }
+
+    [Fact]
+    public async Task Same_Query_Type_Works_For_Single_And_Stream()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysQueries(typeof(EchoHandler).Assembly, typeof(EchoStreamHandler).Assembly)
+            .BuildServiceProvider();
+
+        var dispatcher = services.GetRequiredService<IQueryDispatcher>();
+
+        var single = await dispatcher.DispatchAsync(new Echo { Text = "ab" });
+        Assert.Equal("ab", single);
+
+        var streamed = new List<string>();
+        await foreach (var s in dispatcher.DispatchStreamAsync<string>(new Echo { Text = "ab" }))
+        {
+            streamed.Add(s);
+        }
+        Assert.Equal(new[] { "a", "b" }, streamed);
     }
 }

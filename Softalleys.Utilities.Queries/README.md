@@ -24,7 +24,7 @@ dotnet add package Softalleys.Utilities.Queries
 
 - `IQuery<TResponse>`: marker for a query that produces `TResponse`.
 - `IQueryHandler<TQuery,TResponse>`: handles a single-result query.
-- `IQueryStreamHandler<TQuery,TResponse>`: handles a streaming query and returns `IAsyncEnumerable<TResponse>`.
+- `IQueryStreamHandler<TQuery,TResponse>`: handles a streaming query and returns `IAsyncEnumerable<TResponse>` via `StreamAsync`. Uses the same `IQuery<TResponse>` as the single-result handler.
 - `IQueryDispatcher`: dispatches queries to their registered handlers.
 - Optional lifetimes:
   - Scoped (default): `IQueryHandler<,>`, `IQueryStreamHandler<,>`
@@ -76,14 +76,14 @@ public class GetUserByIdHandler(MyDbContext db) : IQueryHandler<GetUserById, Use
 var dto = await dispatcher.DispatchAsync(new GetUserById(id), ct);
 ```
 
-### Streaming query
+### Streaming query (same IQuery<T> as single)
 
 ```csharp
-public record GetNumbers(int Count) : IQuery<IAsyncEnumerable<int>>;
+public record GetNumbers(int Count) : IQuery<int>;
 
 public class GetNumbersHandler : IQueryStreamHandler<GetNumbers, int>
 {
-	public async IAsyncEnumerable<int> HandleAsync(GetNumbers query, [EnumeratorCancellation] CancellationToken ct = default)
+	public async IAsyncEnumerable<int> StreamAsync(GetNumbers query, [EnumeratorCancellation] CancellationToken ct = default)
 	{
 		for (var i = 0; i < query.Count; i++)
 		{
