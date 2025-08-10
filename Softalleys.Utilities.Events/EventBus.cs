@@ -44,6 +44,9 @@ public class EventBus : IEventBus
             await ExecuteHandlersAsync<IEventSingletonHandler<TEvent>>(eventData, cancellationToken, exceptions, "Main-Singleton");
             await ExecuteHandlersAsync<IEventHandler<TEvent>>(eventData, cancellationToken, exceptions, "Main-Scoped");
 
+            // Phase 2.5: Hosted handlers (singletons that are also hosted services)
+            await ExecuteHandlersAsync<IEventHostedService<TEvent>>(eventData, cancellationToken, exceptions, "Hosted");
+
             // Phase 3: Post-processing handlers (Singleton first, then Scoped)
             await ExecuteHandlersAsync<IEventPostSingletonHandler<TEvent>>(eventData, cancellationToken, exceptions, "Post-Singleton");
             await ExecuteHandlersAsync<IEventPostHandler<TEvent>>(eventData, cancellationToken, exceptions, "Post-Scoped");

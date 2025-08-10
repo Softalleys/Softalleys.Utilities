@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Softalleys.Utilities.Events;
 
@@ -64,6 +65,9 @@ public static class DependencyInjectionExtensions
         RegisterHandlersOfType(services, types, typeof(IEventSingletonHandler<>), ServiceLifetime.Singleton);
         RegisterHandlersOfType(services, types, typeof(IEventPreSingletonHandler<>), ServiceLifetime.Singleton);
         RegisterHandlersOfType(services, types, typeof(IEventPostSingletonHandler<>), ServiceLifetime.Singleton);
+
+    // Register hosted event handlers (singletons shared with IHostedService)
+    RegisterHostedHandlers(services, types);
     }
 
     /// <summary>
@@ -109,6 +113,46 @@ public static class DependencyInjectionExtensions
             {
                 var serviceDescriptor = new ServiceDescriptor(handlerInterface, type, lifetime);
                 services.Add(serviceDescriptor);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Registers event hosted services so that a single singleton instance is shared between
+    /// IEventHostedService<TEvent> and IHostedService.
+    /// </summary>
+    private static void RegisterHostedHandlers(IServiceCollection services, Type[] types)
+    {
+        // Ensure one IHostedService registration per concrete type even if it implements multiple events
+        var registeredHostedTypes = new HashSet<Type>();
+
+        foreach (var type in types)
+        {
+            if (type.IsAbstract || type.IsInterface)
+                continue;
+
+            var hostedInterfaces = type.GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHostedService<>))
+                .ToList();
+
+            if (hostedInterfaces.Count == 0)
+                continue;
+
+            // Register the concrete type as singleton
+            services.TryAddSingleton(type);
+
+            // Map each closed IEventHostedService<T> to the same singleton instance
+            foreach (var hostedInterface in hostedInterfaces)
+            {
+                services.TryAddSingleton(hostedInterface, sp => sp.GetRequiredService(type));
+            }
+
+            // Register as IHostedService once per concrete type (enumerable)
+            if (!registeredHostedTypes.Contains(type))
+            {
+                // Factory mapping ensures IHostedService resolves to the same singleton instance of 'type'
+                services.AddSingleton(typeof(IHostedService), sp => (IHostedService)sp.GetRequiredService(type));
+                registeredHostedTypes.Add(type);
             }
         }
     }

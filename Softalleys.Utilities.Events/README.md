@@ -7,6 +7,7 @@ A lightweight, flexible event-driven architecture library for .NET applications.
 - **🎯 Simple Event System**: Clean, intuitive interfaces for events and handlers
 - **🔄 Flexible Handler Lifecycles**: Support for both scoped and singleton event handlers
 - **⚡ Pre/Post Processing**: Built-in pipeline with pre-processing and post-processing phases
+- **🧵 Hosted Handlers**: Background/hosted services that also receive events
 - **🏗️ Proper DI Integration**: Respects dependency injection scopes and lifecycles
 - **📦 Auto-Discovery**: Automatic scanning and registration of event handlers from assemblies
 - **🚀 High Performance**: Minimal overhead with concurrent handler execution
@@ -136,7 +137,7 @@ public class UserController(IEventBus eventBus) : ControllerBase
 
 ## 🎭 Handler Types and Execution Order
 
-The library supports six different types of event handlers, executed in a specific order:
+The library supports seven different types of event handlers, executed in a specific order:
 
 ### Handler Types
 
@@ -146,6 +147,7 @@ The library supports six different types of event handlers, executed in a specif
 | `IEventPreHandler<T>` | Scoped | Pre-processing | Database validation, scoped preparations |
 | `IEventSingletonHandler<T>` | Singleton | Main processing | Stateless operations, caching, logging |
 | `IEventHandler<T>` | Scoped | Main processing | Database operations, scoped business logic |
+| `IEventHostedService<T>` | Singleton + Hosted | Background kick-off | Start background tasks based on the event |
 | `IEventPostSingletonHandler<T>` | Singleton | Post-processing | Analytics, cleanup, stateless notifications |
 | `IEventPostHandler<T>` | Scoped | Post-processing | Final database updates, scoped cleanup |
 
@@ -157,8 +159,9 @@ When you publish an event, handlers are executed in this order:
 2. **Pre-processing Scoped Handlers** - `IEventPreHandler<T>`
 3. **Main Singleton Handlers** - `IEventSingletonHandler<T>`
 4. **Main Scoped Handlers** - `IEventHandler<T>`
-5. **Post-processing Singleton Handlers** - `IEventPostSingletonHandler<T>`
-6. **Post-processing Scoped Handlers** - `IEventPostHandler<T>`
+5. **Hosted Handlers** - `IEventHostedService<T>` (singletons that are also `IHostedService`)
+6. **Post-processing Singleton Handlers** - `IEventPostSingletonHandler<T>`
+7. **Post-processing Scoped Handlers** - `IEventPostHandler<T>`
 
 Within each phase, handlers execute concurrently for better performance.
 
@@ -206,6 +209,87 @@ catch (AggregateException ex)
     foreach (var innerException in ex.InnerExceptions)
     {
         _logger.LogError(innerException, "Handler failed");
+    }
+}
+```
+
+### Hosted/Background Handlers
+
+`IEventHostedService<T>` lets you implement a background service that also receives events. The DI registration ensures a single singleton instance is used for both `IEventHostedService<T>` and `IHostedService`, so the Host manages lifecycle while the EventBus can invoke `HandleAsync`.
+
+```csharp
+using Microsoft.Extensions.Hosting;
+using Softalleys.Utilities.Events;
+
+public class OrderBackgroundProcessor : IEventHostedService<OrderProcessingEvent>
+{
+    private readonly Channel<OrderProcessingEvent> _channel = Channel.CreateUnbounded<OrderProcessingEvent>();
+    private CancellationTokenSource? _cts;
+    private Task? _worker;
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _worker = Task.Run(ProcessLoopAsync);
+        return Task.CompletedTask;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _channel.Writer.TryComplete();
+        if (_worker is not null)
+        {
+            await _worker.WaitAsync(cancellationToken);
+        }
+        _cts?.Cancel();
+    }
+
+    public ValueTask HandleAsync(OrderProcessingEvent eventData, CancellationToken cancellationToken = default)
+        => _channel.Writer.TryWrite(eventData) ? ValueTask.CompletedTask : ValueTask.FromCanceled(cancellationToken);
+
+    private async Task ProcessLoopAsync()
+    {
+        while (await _channel.Reader.WaitToReadAsync(_cts!.Token))
+        {
+            while (_channel.Reader.TryRead(out var evt))
+            {
+                // do background processing for evt
+            }
+        }
+    }
+}
+```
+
+Notes:
+- Hosted handlers are singletons; implementations must be thread-safe.
+- The Host calls `StartAsync/StopAsync`; EventBus calls `HandleAsync(evt)` in the Hosted phase.
+- Registration is automatic via `AddSoftalleysEvents()` scanning.
+
+#### Wiring in Program.cs / Startup.cs
+
+```csharp
+// Find hosted handlers in the current and additional assemblies
+builder.Services.AddSoftalleysEvents(typeof(OrderBackgroundProcessor).Assembly);
+
+// No need to register IHostedService explicitly; the library links it to the same singleton
+```
+
+#### Publishing an event
+
+```csharp
+public class OrdersController(IEventBus eventBus)
+{
+    public async Task<IActionResult> CreateOrder(CreateOrderRequest req)
+    {
+        // ... create order domain object
+
+        await eventBus.PublishAsync(new OrderProcessingEvent
+        {
+            OrderId = order.Id,
+            CustomerId = order.CustomerId
+        });
+
+        return Accepted();
     }
 }
 ```
