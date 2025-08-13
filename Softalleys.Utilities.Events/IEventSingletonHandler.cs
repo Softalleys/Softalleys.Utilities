@@ -6,4 +6,13 @@ namespace Softalleys.Utilities.Events;
 /// are resolved once per application lifetime.
 /// </summary>
 /// <typeparam name="TEvent">The type of event this handler processes. Must implement <see cref="IEvent"/>.</typeparam>
-public interface IEventSingletonHandler<TEvent> : IEventHandlerBase<TEvent> where TEvent : IEvent { }
+public interface IEventSingletonHandler<TEvent> where TEvent : IEvent
+{
+    /// <summary>
+    /// Handles the specified event asynchronously.
+    /// </summary>
+    /// <param name="eventData">The event data to handle.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous event handling operation.</returns>
+    Task HandleAsync(TEvent eventData, CancellationToken cancellationToken = default);
+}

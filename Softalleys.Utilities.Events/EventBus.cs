@@ -75,18 +75,20 @@ public class EventBus : IEventBus
     /// <param name="exceptions">List to collect any exceptions that occur.</param>
     /// <param name="phase">The execution phase name for logging.</param>
     private async Task ExecuteHandlersAsync<THandler>(IEvent eventData, CancellationToken cancellationToken, List<Exception> exceptions, string phase)
-        where THandler : IEventHandlerBase<IEvent>
+        where THandler : class
     {
         var handlers = _serviceProvider.GetServices<THandler>();
         var handlersList = handlers.ToList();
 
         if (!handlersList.Any())
         {
-            _logger.LogTrace("No {Phase} handlers found for event {EventType}", phase, eventData.GetType().Name);
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogTrace("No {Phase} handlers found for event {EventType}", phase, eventData.GetType().Name);
             return;
         }
 
-        _logger.LogTrace("Executing {Count} {Phase} handlers for event {EventType}", handlersList.Count, phase, eventData.GetType().Name);
+        if (_logger.IsEnabled(LogLevel.Trace))
+            _logger.LogTrace("Executing {Count} {Phase} handlers for event {EventType}", handlersList.Count, phase, eventData.GetType().Name);
 
         foreach (var handler in handlersList)
         {
@@ -123,10 +125,19 @@ public class EventBus : IEventBus
                 }
                 else
                 {
-                    await handler.HandleAsync(eventData, cancellationToken);
+                    // Fallback to reflection if not a known interface
+                    var handleMethod = handler.GetType().GetMethod("HandleAsync");
+                    if (handleMethod != null)
+                    {
+                        var task = handleMethod.Invoke(handler, new object[] { eventData, cancellationToken }) as Task;
+                        if (task != null)
+                        {
+                            await task.ConfigureAwait(false);
+                        }
+                    }
                 }
-                
-                _logger.LogTrace("Successfully executed {Phase} handler {HandlerType}", phase, handler.GetType().Name);
+                if (_logger.IsEnabled(LogLevel.Trace))
+                    _logger.LogTrace("Successfully executed {Phase} handler {HandlerType}", phase, handler.GetType().Name);
             }
             catch (Exception ex)
             {
