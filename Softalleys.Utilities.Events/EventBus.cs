@@ -75,7 +75,7 @@ public class EventBus : IEventBus
     /// <param name="exceptions">List to collect any exceptions that occur.</param>
     /// <param name="phase">The execution phase name for logging.</param>
     private async Task ExecuteHandlersAsync<THandler>(IEvent eventData, CancellationToken cancellationToken, List<Exception> exceptions, string phase)
-        where THandler : class
+        where THandler : IEventHandlerBase<IEvent>
     {
         var handlers = _serviceProvider.GetServices<THandler>();
         var handlersList = handlers.ToList();
@@ -88,27 +88,50 @@ public class EventBus : IEventBus
 
         _logger.LogTrace("Executing {Count} {Phase} handlers for event {EventType}", handlersList.Count, phase, eventData.GetType().Name);
 
-        var tasks = handlersList.Select(async handler =>
+        foreach (var handler in handlersList)
         {
             try
             {
-                // Use reflection to call HandleAsync method
-                var handleMethod = handler.GetType().GetMethod("HandleAsync");
-                if (handleMethod != null)
+                // Try to call HandleAsync directly for known handler interfaces
+                if (handler is IEventPreSingletonHandler<IEvent> preSingleton)
                 {
-                    var task = handleMethod.Invoke(handler, new object[] { eventData, cancellationToken }) as Task;
-                    if (task != null)
-                    {
-                        await task.ConfigureAwait(false);
-                        _logger.LogTrace("Successfully executed {Phase} handler {HandlerType}", phase, handler.GetType().Name);
-                    }
+                    await preSingleton.HandleAsync(eventData, cancellationToken);
                 }
+                else if (handler is IEventPreHandler<IEvent> preScoped)
+                {
+                    await preScoped.HandleAsync(eventData, cancellationToken);
+                }
+                else if (handler is IEventSingletonHandler<IEvent> mainSingleton)
+                {
+                    await mainSingleton.HandleAsync(eventData, cancellationToken);
+                }
+                else if (handler is IEventHandler<IEvent> mainScoped)
+                {
+                    await mainScoped.HandleAsync(eventData, cancellationToken);
+                }
+                else if (handler is IEventHostedService<IEvent> hosted)
+                {
+                    await hosted.HandleAsync(eventData, cancellationToken);
+                }
+                else if (handler is IEventPostSingletonHandler<IEvent> postSingleton)
+                {
+                    await postSingleton.HandleAsync(eventData, cancellationToken);
+                }
+                else if (handler is IEventPostHandler<IEvent> postScoped)
+                {
+                    await postScoped.HandleAsync(eventData, cancellationToken);
+                }
+                else
+                {
+                    await handler.HandleAsync(eventData, cancellationToken);
+                }
+                
+                _logger.LogTrace("Successfully executed {Phase} handler {HandlerType}", phase, handler.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Handler {HandlerType} failed during {Phase} phase for event {EventType}", 
+                _logger.LogError(ex, "Handler {HandlerType} failed during {Phase} phase for event {EventType}",
                     handler.GetType().Name, phase, eventData.GetType().Name);
-                
                 // Collect exception but don't stop other handlers
                 lock (exceptions)
                 {
@@ -116,9 +139,6 @@ public class EventBus : IEventBus
                         $"Handler {handler.GetType().Name} failed during {phase} phase", ex));
                 }
             }
-        });
-
-        // Execute all handlers concurrently within the same phase
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
     }
 }

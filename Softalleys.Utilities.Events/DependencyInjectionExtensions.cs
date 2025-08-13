@@ -66,8 +66,8 @@ public static class DependencyInjectionExtensions
         RegisterHandlersOfType(services, types, typeof(IEventPreSingletonHandler<>), ServiceLifetime.Singleton);
         RegisterHandlersOfType(services, types, typeof(IEventPostSingletonHandler<>), ServiceLifetime.Singleton);
 
-    // Register hosted event handlers (singletons shared with IHostedService)
-    RegisterHostedHandlers(services, types);
+        // Register hosted event handlers (singletons shared with IHostedService)
+        RegisterHostedHandlers(services, types);
     }
 
     /// <summary>
