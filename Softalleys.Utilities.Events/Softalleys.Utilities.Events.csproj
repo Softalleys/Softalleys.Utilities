@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Softalleys.Utilities.Events</PackageId>
-  <Version>1.1.0</Version>
+  <Version>1.1.1</Version>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>A lightweight, flexible event-driven architecture library for .NET applications. Provides event handling with proper dependency injection scope management, pre/post processing pipelines, and both scoped and singleton handler support.</Description>
