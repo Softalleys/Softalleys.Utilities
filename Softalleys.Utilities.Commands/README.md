@@ -60,75 +60,38 @@ Implement validator and processor:
 public class CreateCategoryValidator : ICommandValidator<CreateCategoryCommand, CreateCategoryResult>
 {
     public Task<CreateCategoryResult> ValidateAsync(CreateCategoryCommand cmd, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(cmd.Name))
-            return Task.FromResult<CreateCategoryResult>(new CreateCategoryFailureResult("Name required", "The name is mandatory"));
-        return Task.FromResult<CreateCategoryResult>(new CreateCategoryValid());
-    }
-}
+    # Softalleys.Utilities.Commands
 
-public class CreateCategoryProcessor(MyDbContext db) : ICommandProcessor<CreateCategoryCommand, CreateCategoryResult>
+    Lightweight command pipeline for .NET (net8/net9) with validators, processors, default handler, post-actions and DI scanning.
+
+    Key features
+    - ICommand/ICommandHandler pipeline with validation and processing stages
+    - DefaultCommandHandler to orchestrate validation → processing → post-actions
+    - DI scanning for handlers, validators, processors and post-actions
+    - Scoped and Singleton handler support via marker interface
+
+    Install
+    ```
+    dotnet add package Softalleys.Utilities.Commands --version 1.0.0
+    ```
+
+    Quickstart
+    ```csharp
+    // Register
+    builder.Services.AddSoftalleysCommands(typeof(SomeHandler).Assembly);
+
+    // Define command
+    public record CreateUserCommand(string Email, string Password) : ICommand<CreateUserResult>;
+
+    // Send
+    var result = await mediator.SendAsync<CreateUserResult, CreateUserCommand>(new CreateUserCommand("a@b.com","pwd"));
+    ```
+
+    License
+    MIT
+
+    Source
+    https://github.com/Softalleys/Softalleys.Utilities
+
+    For more details and examples, see the project README in the repository.
 {
-    public async Task<CreateCategoryResult> ProcessAsync(CreateCategoryCommand cmd, CancellationToken ct = default)
-    {
-        var category = new Category { Name = cmd.Name, Description = cmd.Description, Icon = cmd.Icon };
-        db.Categories.Add(category);
-        await db.SaveChangesAsync(ct);
-        return new CreateCategorySuccessResult(category);
-    }
-}
-```
-
-Wire the default handler and optional post-actions:
-
-```csharp
-public class CreateCategoryHandler
-    : DefaultCommandHandler<CreateCategoryCommand, CreateCategoryResult>
-{
-    public CreateCategoryHandler(
-        ICommandValidator<CreateCategoryCommand, CreateCategoryResult> validator,
-        ICommandProcessor<CreateCategoryCommand, CreateCategoryResult> processor,
-        IEnumerable<ICommandPostAction<CreateCategoryCommand, CreateCategoryResult>> postActions)
-        : base(validator, processor, postActions) { }
-}
-
-public class CreateCategoryEventPostAction(Softalleys.Utilities.Events.IEventBus eventBus)
-    : ICommandPostAction<CreateCategoryCommand, CreateCategoryResult>
-{
-    public async Task ExecuteAsync(CreateCategoryCommand cmd, CreateCategoryResult result, CancellationToken ct = default)
-    {
-        if (result is CreateCategorySuccessResult s)
-        {
-            await eventBus.PublishAsync(new CategoryCreatedEvent(s.Category.Id));
-        }
-    }
-}
-```
-
-Dispatch with mediator:
-
-```csharp
-var result = await mediator.SendAsync(new CreateCategoryCommand("name","desc","icon"));
-```
-
-## Custom Validation Continue Logic
-
-`DefaultCommandHandler` decides to continue when:
-- the validation result implements `IValidationStageResult` with `Continue == true`, or
-- the result type name ends with "Valid"
-
-You can bypass the default handler and implement `ICommandHandler<TCommand,TResult>` directly if you prefer explicit control.
-
-## Interfaces
-
-- `ICommand<TResult>`
-- `ICommandHandler<TCommand,TResult>` / `ICommandSingletonHandler<TCommand,TResult>`
-- `ICommandValidator<TCommand,TResult>`
-- `ICommandProcessor<TCommand,TResult>`
-- `ICommandPostAction<TCommand,TResult>`
-- `ICommandMediator`
-
-## Notes
-
-- Results that represent errors should implement `IErrorResponse` for consistent error payloads.
-- The Commands library is agnostic to the events implementation; post-actions are a clean extensibility point to publish events.

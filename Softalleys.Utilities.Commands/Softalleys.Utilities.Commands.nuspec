@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Softalleys.Utilities.Commands</id>
+    <version>1.0.0</version>
+    <authors>Softalleys</authors>
+    <owners>Softalleys</owners>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Lightweight command pipeline for .NET with validators, processors, default handler, DI scanning and scoped/singleton handler support.</description>
+    <tags>commands mediator cqrs dependency-injection softalleys</tags>
+  </metadata>
+</package>
