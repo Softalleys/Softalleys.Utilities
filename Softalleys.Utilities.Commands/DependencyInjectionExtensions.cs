@@ -16,8 +16,11 @@ public static class DependencyInjectionExtensions
             assemblies = [Assembly.GetCallingAssembly()];
         }
 
-        // Mediator is scoped (safer with scoped dependencies like DbContext)
-        services.TryAddScoped<ICommandMediator, CommandMediator>();
+    // Mediator is scoped (safer with scoped dependencies like DbContext)
+    services.TryAddScoped<ICommandMediator, CommandMediator>();
+
+    // Handler invoker cache: compiled delegate cache used to avoid repeated reflection at runtime
+    services.TryAddSingleton<IHandlerInvokerCache, HandlerInvokerCache>();
 
         // Expose the default handler as an open generic for DI construction if needed
         services.TryAddTransient(typeof(DefaultCommandHandler<,>));

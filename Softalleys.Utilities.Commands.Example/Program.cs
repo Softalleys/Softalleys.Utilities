@@ -51,5 +51,10 @@ class Program
         Console.WriteLine(ok);
     var bad = await mediator.SendAsync<CreateUserResult, CreateUserCommand>(new CreateUserCommand("","123"));
         Console.WriteLine(bad);
+
+    // Non-generic overload: useful when you only have ICommand<TResult> at compile time
+    ICommand<CreateUserResult> cmd = new CreateUserCommand("user2@example.com", "pwd123");
+    var ok2 = await mediator.SendAsync<CreateUserResult>(cmd);
+    Console.WriteLine(ok2);
     }
 }
