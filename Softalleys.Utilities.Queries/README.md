@@ -6,6 +6,7 @@ Lightweight CQRS query dispatcher with proper DI lifetimes (Scoped by default, o
 
 - Simple contracts: `IQuery<T>`, `IQueryHandler<TQuery,TResponse>`, `IQueryStreamHandler<TQuery,TResponse>`
 - Dispatcher: `IQueryDispatcher` (singleton) to route queries to handlers
+- Mediator: `IQueryMediator` (singleton) - alias for `IQueryDispatcher` with `SendAsync`/`SendStreamAsync` methods for symmetry with `ICommandMediator`
 - DI-friendly lifetimes:
   - Handlers are Scoped by default
   - Opt-in Singleton via `IQuerySingletonHandler<TQuery,TResponse>` and `IQueryStreamSingletonHandler<TQuery,TResponse>`
@@ -26,6 +27,7 @@ dotnet add package Softalleys.Utilities.Queries
 - `IQueryHandler<TQuery,TResponse>`: handles a single-result query.
 - `IQueryStreamHandler<TQuery,TResponse>`: handles a streaming query and returns `IAsyncEnumerable<TResponse>` via `StreamAsync`. Uses the same `IQuery<TResponse>` as the single-result handler.
 - `IQueryDispatcher`: dispatches queries to their registered handlers.
+- `IQueryMediator`: alias for `IQueryDispatcher` with `SendAsync`/`SendStreamAsync` methods, providing symmetry with `ICommandMediator`.
 - Optional lifetimes:
   - Scoped (default): `IQueryHandler<,>`, `IQueryStreamHandler<,>`
   - Singleton (opt-in): implement the marker `IQuerySingletonHandler<,>` or `IQueryStreamSingletonHandler<,>` in addition to the base interface.
@@ -50,8 +52,10 @@ builder.Services.AddSoftalleysQueries(
 	typeof(HandlerB).Assembly
 );
 
-// Later resolve IQueryDispatcher wherever you need it
+// Later resolve IQueryDispatcher or IQueryMediator wherever you need it
 public class MyController(IQueryDispatcher dispatcher) { /* ... */ }
+// OR 
+public class MyController(IQueryMediator mediator) { /* ... */ }
 ```
 
 The dispatcher creates a new DI scope per dispatch to respect Scoped dependencies. For stream queries, the scope is held for the entire enumeration.
@@ -74,6 +78,9 @@ public class GetUserByIdHandler(MyDbContext db) : IQueryHandler<GetUserById, Use
 
 // Dispatch
 var dto = await dispatcher.DispatchAsync(new GetUserById(id), ct);
+
+// Or using IQueryMediator (identical functionality, different method names)
+var dto = await mediator.SendAsync(new GetUserById(id), ct);
 ```
 
 ### Streaming query (same IQuery<T> as single)
@@ -96,6 +103,12 @@ public class GetNumbersHandler : IQueryStreamHandler<GetNumbers, int>
 
 // Dispatch
 await foreach (var n in dispatcher.DispatchStreamAsync<int>(new GetNumbers(5), ct))
+{
+	Console.WriteLine(n);
+}
+
+// Or using IQueryMediator (identical functionality, different method names)
+await foreach (var n in mediator.SendStreamAsync<int>(new GetNumbers(5), ct))
 {
 	Console.WriteLine(n);
 }
@@ -128,6 +141,7 @@ public class GetVersionHandler : IQuerySingletonHandler<GetVersion, string>
 - `IQuery<T>` marker interface
 - `IQueryHandler<TQuery,TResponse>` and `IQueryStreamHandler<TQuery,TResponse>`
 - `IQueryDispatcher` (singleton)
+- `IQueryMediator` (singleton) - alias with `SendAsync`/`SendStreamAsync` methods
 - Scoped default lifetimes; opt-in singleton via marker interfaces
 - DI assembly scanning via `AddSoftalleysQueries`
 - Streaming support with scope preserved over enumeration
