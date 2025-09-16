@@ -19,6 +19,9 @@ public static class DependencyInjectionExtensions
 
         // Dispatcher is singleton as requested.
         services.TryAddSingleton<IQueryDispatcher, QueryDispatcher>();
+        
+        // Register IQueryMediator as an alias for IQueryDispatcher with SendAsync methods
+        services.TryAddSingleton<IQueryMediator, QueryMediator>();
 
         foreach (var assembly in assemblies)
         {
