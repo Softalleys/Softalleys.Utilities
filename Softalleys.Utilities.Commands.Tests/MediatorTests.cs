@@ -154,6 +154,45 @@ public class MediatorTests
             => Task.FromResult<MultiResult>(new MultiSuccess(command.Value, command.Text.ToUpper()));
     }
 
+    // Custom handler that injects arrays of validators and processors
+    private class CustomMultiHandler : ICommandHandler<MultiCommand, MultiResult>
+    {
+        private readonly IEnumerable<ICommandValidator<MultiCommand, MultiResult>> _validators;
+        private readonly IEnumerable<ICommandProcessor<MultiCommand, MultiResult>> _processors;
+
+        public CustomMultiHandler(
+            IEnumerable<ICommandValidator<MultiCommand, MultiResult>> validators,
+            IEnumerable<ICommandProcessor<MultiCommand, MultiResult>> processors)
+        {
+            _validators = validators ?? Array.Empty<ICommandValidator<MultiCommand, MultiResult>>();
+            _processors = processors ?? throw new ArgumentException("At least one processor is required");
+            if (!_processors.Any())
+                throw new ArgumentException("At least one processor is required");
+        }
+
+        public async Task<MultiResult> HandleAsync(MultiCommand command, CancellationToken cancellationToken = default)
+        {
+            // Run validators
+            foreach (var validator in _validators)
+            {
+                var validationResult = await validator.ValidateAsync(command, cancellationToken).ConfigureAwait(false);
+                if (validationResult is not IValidationStageResult valid || !valid.Continue)
+                {
+                    return validationResult;
+                }
+            }
+
+            // Run processors, last one wins
+            MultiResult result = default!;
+            foreach (var processor in _processors)
+            {
+                result = await processor.ProcessAsync(command, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
+        }
+    }
+
     [Fact]
     public async Task Multiple_Validators_All_Pass()
     {
@@ -242,5 +281,21 @@ public class MediatorTests
         var success = Assert.IsType<MultiSuccess>(result);
         Assert.Equal(10, success.ProcessedValue);  // Should be doubled
         Assert.Equal("test", success.ProcessedText);
+    }
+
+    [Fact]
+    public async Task Custom_Handler_With_Multiple_Validators_And_Processors()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysCommands(typeof(CustomMultiHandler).Assembly)
+            .BuildServiceProvider();
+        var mediator = services.GetRequiredService<ICommandMediator>();
+
+        var result = await mediator.SendAsync<MultiResult, MultiCommand>(new MultiCommand(25, "world"));
+        
+        // Should pass all validators and get result from the last processor (UppercaseProcessor)
+        var success = Assert.IsType<MultiSuccess>(result);
+        Assert.Equal(25, success.ProcessedValue);  // Original value, not doubled
+        Assert.Equal("WORLD", success.ProcessedText);  // Uppercased
     }
 }
