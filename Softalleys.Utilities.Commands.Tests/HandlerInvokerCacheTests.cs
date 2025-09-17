@@ -49,7 +49,10 @@ public class HandlerInvokerCacheTests
         var cache = new HandlerInvokerCache();
 
         var factory = cache.GetOrAddDefaultHandlerFactory(typeof(PipeCmd), typeof(ResultBase));
-        var handlerObj = factory(new PipeValidator(), new PipeProcessor(), Array.Empty<ICommandPostAction<PipeCmd, ResultBase>>());
+        var handlerObj = factory(
+            new[] { new PipeValidator() }, 
+            new[] { new PipeProcessor() }, 
+            Array.Empty<ICommandPostAction<PipeCmd, ResultBase>>());
 
         var invoker = cache.GetOrAddHandlerInvoker(typeof(PipeCmd), typeof(ResultBase));
         var ok = await invoker(handlerObj, new PipeCmd(7), CancellationToken.None);

@@ -28,17 +28,17 @@ public class CommandMediator(IServiceProvider sp, IHandlerInvokerCache invokerCa
         }
 
         // Fallback: compose DefaultCommandHandler from parts
-        var processor = sp.GetService<ICommandProcessor<TCommand, TResult>>();
-        if (processor is null)
+        var processors = sp.GetServices<ICommandProcessor<TCommand, TResult>>().ToList();
+        if (processors.Count == 0)
         {
             throw new InvalidOperationException(
                 $"No ICommandHandler<{typeof(TCommand).Name}, {typeof(TResult).Name}> or ICommandProcessor<{typeof(TCommand).Name}, {typeof(TResult).Name}> is registered.");
         }
 
-        var validator = sp.GetService<ICommandValidator<TCommand, TResult>>();
-        var postActions = sp.GetService<IEnumerable<ICommandPostAction<TCommand, TResult>>>() ?? [];
+        var validators = sp.GetServices<ICommandValidator<TCommand, TResult>>();
+        var postActions = sp.GetServices<ICommandPostAction<TCommand, TResult>>();
 
-        var defaultHandler = new DefaultCommandHandler<TCommand, TResult>(validator, processor, postActions);
+        var defaultHandler = new DefaultCommandHandler<TCommand, TResult>(validators, processors, postActions);
         return await defaultHandler.HandleAsync(command, cancellationToken).ConfigureAwait(false);
     }
 
@@ -67,20 +67,20 @@ public class CommandMediator(IServiceProvider sp, IHandlerInvokerCache invokerCa
 
         // 2. Fallback: compose DefaultCommandHandler from parts
         var processorType = typeof(ICommandProcessor<,>).MakeGenericType(commandType, typeof(TResult));
-        var processor = sp.GetService(processorType);
-        if (processor is null)
+        var processors = sp.GetServices(processorType).Cast<object>().ToArray();
+        if (processors.Length == 0)
         {
             throw new InvalidOperationException($"No ICommandHandler<{commandType.Name}, {typeof(TResult).Name}> or ICommandProcessor<{commandType.Name}, {typeof(TResult).Name}> is registered.");
         }
 
         var validatorType = typeof(ICommandValidator<,>).MakeGenericType(commandType, typeof(TResult));
-        var validator = sp.GetService(validatorType);
-        var postActionType = typeof(IEnumerable<>).MakeGenericType(typeof(ICommandPostAction<,>).MakeGenericType(commandType, typeof(TResult)));
-        var postActions = sp.GetService(postActionType) as System.Collections.IEnumerable ?? Array.Empty<object>();
+        var validators = sp.GetServices(validatorType);
+        var postActionType = typeof(ICommandPostAction<,>).MakeGenericType(commandType, typeof(TResult));
+        var postActions = sp.GetServices(postActionType);
 
     // Create DefaultCommandHandler<TCommand, TResult> via compiled factory
     var factory = invokerCache.GetOrAddDefaultHandlerFactory(commandType, typeof(TResult));
-    var defaultHandler = factory(validator, processor, postActions);
+    var defaultHandler = factory(validators, processors, postActions);
 
     // Invoke HandleAsync on the constructed default handler via compiled invoker
     var defInvoker = invokerCache.GetOrAddHandlerInvoker(commandType, typeof(TResult));

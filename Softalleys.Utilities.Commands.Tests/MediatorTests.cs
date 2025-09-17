@@ -106,4 +106,141 @@ public class MediatorTests
             _ = await mediator.SendAsync<int, ConflictCmd>(new ConflictCmd(1));
         });
     }
+
+    // Test multiple validators and processors
+    private record MultiCommand(int Value, string Text) : ICommand<MultiResult>;
+    private abstract record MultiResult;
+    private record MultiValid : MultiResult, IValidationStageResult { public bool Continue => true; }
+    private record MultiSuccess(int ProcessedValue, string ProcessedText) : MultiResult;
+    private record MultiFailure(string Reason) : MultiResult, Interfaces.IErrorResponse
+    {
+        public string Error { get; init; } = "Bad Request";
+        public string Title { get; init; } = "Validation Error";
+        public string Message { get; init; } = Reason;
+        public int Status { get; init; } = 400;
+        public IDictionary<string, string[]> Errors { get; init; } = new Dictionary<string, string[]>();
+        public string? TraceId { get; init; }
+    }
+
+    // First validator checks value range
+    private class RangeValidator : ICommandValidator<MultiCommand, MultiResult>
+    {
+        public Task<MultiResult> ValidateAsync(MultiCommand command, CancellationToken cancellationToken = default)
+            => command.Value < 0 || command.Value > 100
+                ? Task.FromResult<MultiResult>(new MultiFailure("Value must be between 0 and 100"))
+                : Task.FromResult<MultiResult>(new MultiValid());
+    }
+
+    // Second validator checks text length
+    private class LengthValidator : ICommandValidator<MultiCommand, MultiResult>
+    {
+        public Task<MultiResult> ValidateAsync(MultiCommand command, CancellationToken cancellationToken = default)
+            => string.IsNullOrEmpty(command.Text) || command.Text.Length < 3
+                ? Task.FromResult<MultiResult>(new MultiFailure("Text must be at least 3 characters"))
+                : Task.FromResult<MultiResult>(new MultiValid());
+    }
+
+    // First processor doubles the value
+    private class DoublingProcessor : ICommandProcessor<MultiCommand, MultiResult>
+    {
+        public Task<MultiResult> ProcessAsync(MultiCommand command, CancellationToken cancellationToken = default)
+            => Task.FromResult<MultiResult>(new MultiSuccess(command.Value * 2, command.Text));
+    }
+
+    // Second processor converts text to uppercase (this will be the final result)
+    private class UppercaseProcessor : ICommandProcessor<MultiCommand, MultiResult>
+    {
+        public Task<MultiResult> ProcessAsync(MultiCommand command, CancellationToken cancellationToken = default)
+            => Task.FromResult<MultiResult>(new MultiSuccess(command.Value, command.Text.ToUpper()));
+    }
+
+    [Fact]
+    public async Task Multiple_Validators_All_Pass()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysCommands(typeof(RangeValidator).Assembly)
+            .BuildServiceProvider();
+        var mediator = services.GetRequiredService<ICommandMediator>();
+
+        var result = await mediator.SendAsync<MultiResult, MultiCommand>(new MultiCommand(50, "Hello"));
+        
+        // Should get result from the last processor (UppercaseProcessor)
+        var success = Assert.IsType<MultiSuccess>(result);
+        Assert.Equal(50, success.ProcessedValue);
+        Assert.Equal("HELLO", success.ProcessedText);
+    }
+
+    [Fact]
+    public async Task Multiple_Validators_First_Fails()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysCommands(typeof(RangeValidator).Assembly)
+            .BuildServiceProvider();
+        var mediator = services.GetRequiredService<ICommandMediator>();
+
+        var result = await mediator.SendAsync<MultiResult, MultiCommand>(new MultiCommand(150, "Hello"));
+        
+        // Should fail on first validator (range check)
+        var failure = Assert.IsType<MultiFailure>(result);
+        Assert.Equal("Value must be between 0 and 100", failure.Reason);
+    }
+
+    [Fact]
+    public async Task Multiple_Validators_Second_Fails()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysCommands(typeof(RangeValidator).Assembly)
+            .BuildServiceProvider();
+        var mediator = services.GetRequiredService<ICommandMediator>();
+
+        var result = await mediator.SendAsync<MultiResult, MultiCommand>(new MultiCommand(50, "Hi"));
+        
+        // Should fail on second validator (length check)
+        var failure = Assert.IsType<MultiFailure>(result);
+        Assert.Equal("Text must be at least 3 characters", failure.Reason);
+    }
+
+    [Fact]
+    public async Task Multiple_Processors_Last_One_Wins()
+    {
+        var services = new ServiceCollection()
+            .AddSoftalleysCommands(typeof(RangeValidator).Assembly)
+            .BuildServiceProvider();
+        var mediator = services.GetRequiredService<ICommandMediator>();
+
+        var result = await mediator.SendAsync<MultiResult, MultiCommand>(new MultiCommand(5, "test"));
+        
+        // Should get result from the last processor (UppercaseProcessor)
+        // The DoubleProcessor would return (10, "test") but UppercaseProcessor should override with (5, "TEST")
+        var success = Assert.IsType<MultiSuccess>(result);
+        Assert.Equal(5, success.ProcessedValue);  // Original value, not doubled
+        Assert.Equal("TEST", success.ProcessedText);  // Uppercased
+    }
+
+    [Fact]
+    public void DefaultCommandHandler_Throws_When_No_Processors()
+    {
+        // Test that DefaultCommandHandler requires at least one processor
+        Assert.Throws<ArgumentException>(() =>
+        {
+            new DefaultCommandHandler<MultiCommand, MultiResult>(
+                new[] { new RangeValidator() },
+                Array.Empty<ICommandProcessor<MultiCommand, MultiResult>>());
+        });
+    }
+
+    [Fact]
+    public async Task DefaultCommandHandler_Works_With_No_Validators()
+    {
+        // Test that validators are optional
+        var handler = new DefaultCommandHandler<MultiCommand, MultiResult>(
+            null, // No validators
+            new[] { new DoublingProcessor() });
+
+        var result = await handler.HandleAsync(new MultiCommand(5, "test"), CancellationToken.None);
+        
+        var success = Assert.IsType<MultiSuccess>(result);
+        Assert.Equal(10, success.ProcessedValue);  // Should be doubled
+        Assert.Equal("test", success.ProcessedText);
+    }
 }
