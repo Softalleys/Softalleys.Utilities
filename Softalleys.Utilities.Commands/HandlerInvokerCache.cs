@@ -57,22 +57,22 @@ public sealed class HandlerInvokerCache : IHandlerInvokerCache
     {
         var handlerGenericType = typeof(DefaultCommandHandler<,>).MakeGenericType(commandType, resultType);
 
-        var validatorType = typeof(ICommandValidator<,>).MakeGenericType(commandType, resultType);
-        var processorType = typeof(ICommandProcessor<,>).MakeGenericType(commandType, resultType);
+        var validatorsType = typeof(IEnumerable<>).MakeGenericType(typeof(ICommandValidator<,>).MakeGenericType(commandType, resultType));
+        var processorsType = typeof(IEnumerable<>).MakeGenericType(typeof(ICommandProcessor<,>).MakeGenericType(commandType, resultType));
         var postActionsType = typeof(IEnumerable<>).MakeGenericType(typeof(ICommandPostAction<,>).MakeGenericType(commandType, resultType));
 
-        var ctor = handlerGenericType.GetConstructor(new[] { validatorType, processorType, postActionsType })
+        var ctor = handlerGenericType.GetConstructor(new[] { validatorsType, processorsType, postActionsType })
             ?? throw new InvalidOperationException($"No matching ctor for {handlerGenericType}");
 
-        var vParam = Expression.Parameter(typeof(object), "validatorObj");
-        var pParam = Expression.Parameter(typeof(object), "processorObj");
+        var vParam = Expression.Parameter(typeof(object), "validatorsObj");
+        var pParam = Expression.Parameter(typeof(object), "processorsObj");
         var paParam = Expression.Parameter(typeof(object), "postActionsObj");
 
-        var validatorCast = Expression.Convert(vParam, validatorType);
-        var processorCast = Expression.Convert(pParam, processorType);
+        var validatorsCast = Expression.Convert(vParam, validatorsType);
+        var processorsCast = Expression.Convert(pParam, processorsType);
         var postActionsCast = Expression.Convert(paParam, postActionsType);
 
-        var newExpr = Expression.New(ctor, validatorCast, processorCast, postActionsCast);
+        var newExpr = Expression.New(ctor, validatorsCast, processorsCast, postActionsCast);
         var lambda = Expression.Lambda<Func<object?, object?, object, object>>(Expression.Convert(newExpr, typeof(object)), vParam, pParam, paParam);
         return lambda.Compile();
     }
