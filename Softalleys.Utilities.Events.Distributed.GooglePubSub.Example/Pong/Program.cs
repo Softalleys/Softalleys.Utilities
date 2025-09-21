@@ -49,9 +49,7 @@ builder.Services
                 o.AutoProvisionTopic = true;
                 o.AutoProvisionSubscription = true;
                 o.SubscriptionId ??= builder.Configuration["Pong:SubscriptionId"] ?? "pong-sub";
-                o.PushEndpoint ??= "http://pong:5187" + o.SubscribePath;
             }
-            Console.WriteLine($"Using Google PubSub ProjectId={o.ProjectId}, TopicId={o.TopicId}, SubscribePath={o.SubscribePath}");
         }));
     });
 

@@ -23,6 +23,5 @@ public sealed class GooglePubSubDistributedEventsOptions
     // Provisioning (dev/emulator convenience; in prod this is often managed by IaC)
     public bool AutoProvisionTopic { get; set; } = false;
     public bool AutoProvisionSubscription { get; set; } = false; // if PushEndpoint is set => push sub, else pull sub
-    public string? PushEndpoint { get; set; } // e.g., Cloud Run URL in prod, or http://service:port/path in docker
     public int AckDeadlineSeconds { get; set; } = 10;
 }
