@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Softalleys.Utilities.Events.Distributed</id>
+    <version>1.0.1</version>
+    <authors>Softalleys</authors>
+    <owners>Softalleys</owners>
+    <license type="file">LICENSE</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Transport-agnostic distributed events core for Softalleys.Utilities.Events. Provides envelopes, naming, serialization, DI builder, event bus decorator, and receiver abstractions.</description>
+    <tags>events distributed event-bus softalleys</tags>
+  </metadata>
+    <files>
+    <file src="README.md" target="README.md" />
+    <file src="LICENSE" target="LICENSE" />
+    <file src="bin\Release\net9.0\*.dll" target="lib\net9.0" />
+    <file src="bin\Release\net9.0\*.xml" target="lib\net9.0" />
+  </files>
+</package>

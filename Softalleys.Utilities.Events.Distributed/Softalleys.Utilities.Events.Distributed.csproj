@@ -4,14 +4,16 @@
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
     <PackageId>Softalleys.Utilities.Events.Distributed</PackageId>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>Transport-agnostic distributed events core for Softalleys.Utilities.Events. Provides envelopes, naming, serialization, DI builder, event bus decorator, and receiver abstractions.</Description>
     <PackageTags>events;distributed;event-bus;softalleys</PackageTags>
     <RepositoryUrl>https://github.com/Softalleys/Softalleys.Utilities</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
@@ -26,7 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softalleys.Utilities.Events" Version="1.0.*" />
+    <PackageReference Include="Softalleys.Utilities.Events" Version="1.1.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

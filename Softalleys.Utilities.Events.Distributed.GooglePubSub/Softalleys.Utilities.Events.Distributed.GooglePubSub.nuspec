@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Softalleys.Utilities.Events.Distributed.GooglePubSub</id>
+    <version>1.0.0</version>
+    <authors>Softalleys</authors>
+    <owners>Softalleys</owners>
+    <license type="file">LICENSE</license>
+    <projectUrl>https://github.com/Softalleys/Softalleys.Utilities</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Google Pub/Sub transport implementation for Softalleys.Utilities.Events.Distributed. Provides Google Cloud Pub/Sub integration for distributed event publishing and receiving.</description>
+    <tags>events distributed event-bus softalleys</tags>
+  </metadata>
+    <files>
+    <file src="README.md" target="README.md" />
+    <file src="LICENSE" target="LICENSE" />
+    <file src="bin\Release\net9.0\*.dll" target="lib\net9.0" />
+    <file src="bin\Release\net9.0\*.xml" target="lib\net9.0" />
+  </files>
+</package>
