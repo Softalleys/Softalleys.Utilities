@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Softalleys.Utilities.Events.Distributed.Configuration;
 using Softalleys.Utilities.Events.Distributed.GooglePubSub.Options;
 using Softalleys.Utilities.Events.Distributed.GooglePubSub.Publishing;
+using Softalleys.Utilities.Events.Distributed.GooglePubSub.Receiving;
 using Softalleys.Utilities.Events.Distributed.Publishing;
 
 namespace Softalleys.Utilities.Events.Distributed.GooglePubSub;
@@ -21,6 +22,8 @@ public static class DependencyInjectionExtensions
         configure?.Invoke(gb);
 
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IDistributedEventPublisher, GooglePubSubDistributedEventPublisher>());
+        // Optional hosted services: provisioning and pull subscriber
+        services.AddHostedService<GooglePubSubPullSubscriberService>();
         return builder;
     }
 }

@@ -13,6 +13,7 @@ using Softalleys.Utilities.Events.Distributed.GooglePubSub.Options;
 // using Softalleys.Utilities.Events.Distributed.GooglePubSub.Receiving; // push receiver not used in this simplified example
 using Softalleys.Utilities.Events.Distributed.GooglePubSub.Example.Contracts;
 using Softalleys.Utilities.Events.Distributed.Receiving;
+using Softalleys.Utilities.Events.Distributed.GooglePubSub.Receiving;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,101 +34,37 @@ builder.Services
         // (leave default NoneEventsFilter). Only set serialization and naming/mapping.
         dist.Serialization.UseSystemTextJson();
         dist.Naming.UseKebabCase().Map<PingRequested>("ping-requested", 1);
+        dist.UseGooglePubSub(g => g.Configure(o =>
+        {
+            // bind from configuration if present
+            builder.Configuration.GetSection("Softalleys:Events:Distributed:GooglePubSub").Bind(o);
+            // Emulator push doesn't add Authorization header; disable JWT validation here
+            o.RequireJwtValidation = false;
+            if (string.IsNullOrWhiteSpace(o.ProjectId)) o.ProjectId = "local-project";
+            if (string.IsNullOrWhiteSpace(o.TopicId)) o.TopicId = "events";
+            // For local/dev, auto-provision topic and a push subscription to this service
+            var isEmulator = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PUBSUB_EMULATOR_HOST"));
+            if (isEmulator)
+            {
+                o.AutoProvisionTopic = true;
+                o.AutoProvisionSubscription = true;
+                o.SubscriptionId ??= builder.Configuration["Pong:SubscriptionId"] ?? "pong-sub";
+                o.PushEndpoint ??= "http://pong:5187" + o.SubscribePath;
+            }
+            Console.WriteLine($"Using Google PubSub ProjectId={o.ProjectId}, TopicId={o.TopicId}, SubscribePath={o.SubscribePath}");
+        }));
     });
 
-// Configure Google Pub/Sub options for the pull subscriber (without registering the publisher)
-builder.Services.Configure<GooglePubSubDistributedEventsOptions>(o =>
-{
-    builder.Configuration.GetSection("Softalleys:Events:Distributed:GooglePubSub").Bind(o);
-    if (string.IsNullOrWhiteSpace(o.ProjectId)) o.ProjectId = "local-project";
-    if (string.IsNullOrWhiteSpace(o.TopicId)) o.TopicId = "events";
-});
-
-builder.Services.AddHostedService<PullSubscriberHostedService>();
 builder.Services.AddScoped<IEventHandler<PingRequested>, PingRequestedHandler>();
 
 var app = builder.Build();
-// Only expose a simple health endpoint; receiving is done via pull subscriber below
+// Only expose a simple health endpoint; receiving is handled by push (and/or pull if enabled)
 app.MapGet("/health", () => Results.Ok("ok"));
+
+// Map the receive endpoint for push subscriptions if needed
+app.MapGooglePubSubReceiver(); // default route from options (/google-pubsub/receive) 
+
 await app.RunAsync();
-
-public sealed class PullSubscriberHostedService(
-    ILogger<PullSubscriberHostedService> logger,
-    IHostApplicationLifetime lifetime,
-    Microsoft.Extensions.Options.IOptions<GooglePubSubDistributedEventsOptions> opts,
-    IServiceProvider serviceProvider)
-    : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        var o = opts.Value;
-        if (string.IsNullOrWhiteSpace(o.ProjectId)) o.ProjectId = "local-project";
-        var projectId = o.ProjectId!;
-        var topicId = o.TopicId ?? "events";
-        var subscriptionId = Environment.GetEnvironmentVariable("Pong__SubscriptionId") ?? "pong-sub";
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                var publisher = await new PublisherServiceApiClientBuilder
-                {
-                    EmulatorDetection = EmulatorDetection.EmulatorOrProduction
-                }.BuildAsync(stoppingToken);
-                var subscriber = await new SubscriberServiceApiClientBuilder
-                {
-                    EmulatorDetection = EmulatorDetection.EmulatorOrProduction
-                }.BuildAsync(stoppingToken);
-
-                var topicName = TopicName.FromProjectTopic(projectId, topicId);
-                try { await publisher.CreateTopicAsync(topicName, cancellationToken: stoppingToken); }
-                catch (Grpc.Core.RpcException ex) when (ex.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists) { }
-
-                var subscriptionName = SubscriptionName.FromProjectSubscription(projectId, subscriptionId);
-                try { await subscriber.CreateSubscriptionAsync(subscriptionName, topicName, pushConfig: null, ackDeadlineSeconds: 10, cancellationToken: stoppingToken); }
-                catch (Grpc.Core.RpcException ex) when (ex.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists) { }
-
-                var client = await new SubscriberClientBuilder
-                {
-                    SubscriptionName = subscriptionName,
-                    EmulatorDetection = EmulatorDetection.EmulatorOrProduction
-                }.BuildAsync(stoppingToken);
-                logger.LogInformation("Pong subscriber started. Project={Project} Topic={Topic} Subscription={Sub}", projectId, topicId, subscriptionId);
-
-                await client.StartAsync(async (msg, ct) =>
-                {
-                    try
-                    {
-                        using var scope = serviceProvider.CreateScope();
-                        var receiver = scope.ServiceProvider.GetRequiredService<IDistributedEventReceiver>();
-                        var headers = msg.Attributes?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>();
-                        var contentType = headers.TryGetValue("contentType", out var ctHeader) ? ctHeader : "application/json";
-                        var outcome = await receiver.ProcessAsync(new DistributedInboundMessage(msg.Data.Memory, contentType, headers.TryGetValue("eventName", out var en) ? en : null,
-                            headers.TryGetValue("eventVersion", out var ev) && int.TryParse(ev, out var v) ? v : null, headers, "google-pubsub-pull"), ct);
-                        if (outcome == InboundProcessOutcome.Success) return SubscriberClient.Reply.Ack;
-                        if (outcome == InboundProcessOutcome.DeadLetter) return SubscriberClient.Reply.Ack; // ack to drop
-                        return SubscriberClient.Reply.Nack; // retry
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Processing failed");
-                        return SubscriberClient.Reply.Nack;
-                    }
-                });
-
-                lifetime.ApplicationStopped.Register(async () => await client.StopAsync(CancellationToken.None));
-
-                // Block until cancellation; if cancelled, loop exits gracefully
-                await Task.Delay(Timeout.Infinite, stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Pub/Sub emulator not ready. Retrying in 2s...");
-                try { await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken); } catch { }
-            }
-        }
-    }
-}
 
 public sealed class PingRequestedHandler : IEventHandler<PingRequested>
 {

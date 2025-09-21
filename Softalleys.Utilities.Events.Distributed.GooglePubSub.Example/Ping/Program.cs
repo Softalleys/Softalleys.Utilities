@@ -37,6 +37,8 @@ builder.Services
             o.RequireJwtValidation = false; // publisher side
             if (string.IsNullOrWhiteSpace(o.ProjectId)) o.ProjectId = "local-project";
             if (string.IsNullOrWhiteSpace(o.TopicId)) o.TopicId = "events";
+            // For local dev, optionally provision topic automatically (emulator)
+            o.AutoProvisionTopic = o.AutoProvisionTopic || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PUBSUB_EMULATOR_HOST"));
         }));
     });
 
@@ -47,23 +49,7 @@ var message = args.Length > 1 && args[0].Equals("publish", StringComparison.Ordi
     ? string.Join(" ", args.Skip(1))
     : "hello from ping";
 
-// Ensure topic and a default subscription exist (idempotent), to avoid emulator timing issues
-var projectId = builder.Configuration["Softalleys:Events:Distributed:GooglePubSub:ProjectId"] ?? "local-project";
-var topicId = builder.Configuration["Softalleys:Events:Distributed:GooglePubSub:TopicId"] ?? "events";
-var subscriptionId = "pong-sub"; // must match Pong
-try
-{
-    var pubAdmin = await new PublisherServiceApiClientBuilder { EmulatorDetection = EmulatorDetection.EmulatorOrProduction }.BuildAsync();
-    var subAdmin = await new SubscriberServiceApiClientBuilder { EmulatorDetection = EmulatorDetection.EmulatorOrProduction }.BuildAsync();
-    var topicName = TopicName.FromProjectTopic(projectId, topicId);
-    var subscriptionName = SubscriptionName.FromProjectSubscription(projectId, subscriptionId);
-    try { await pubAdmin.CreateTopicAsync(topicName); } catch (Grpc.Core.RpcException ex) when (ex.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists) { }
-    try { await subAdmin.CreateSubscriptionAsync(subscriptionName, topicName, pushConfig: null, ackDeadlineSeconds: 10); } catch (Grpc.Core.RpcException ex) when (ex.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists) { }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"[PING] Ensure topic/subscription failed (continuing): {ex.Message}");
-}
+// No Pub/Sub admin/provisioning code here. The library can auto-provision when configured.
 
 await using var scope = host.Services.CreateAsyncScope();
 var bus = scope.ServiceProvider.GetRequiredService<IEventBus>();
