@@ -9,14 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Softalleys.Utilities.Events.Distributed\Softalleys.Utilities.Events.Distributed.csproj" />
-    <ProjectReference Include="..\Softalleys.Utilities.Events\Softalleys.Utilities.Events.csproj" />
+    <PackageReference Include="Softalleys.Utilities.Events.Distributed" Version="1.0.*" />
+    <PackageReference Include="Softalleys.Utilities.Events" Version="1.0.*" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Cloud.PubSub.V1" Version="3.*" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.*" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.*" Condition=" '$(TargetFramework)' == 'net8.0' " />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.*" Condition=" '$(TargetFramework)' == 'net9.0' " />
   </ItemGroup>
 
   <ItemGroup>

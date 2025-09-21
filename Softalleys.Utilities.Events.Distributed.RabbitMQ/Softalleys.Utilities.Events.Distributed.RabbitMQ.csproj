@@ -18,16 +18,18 @@
     <PackageReference Include="RabbitMQ.Client" Version="6.*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.*" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.*" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
     <PackageReference Include="RabbitMQ.Client" Version="6.*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.*" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Softalleys.Utilities.Events.Distributed\Softalleys.Utilities.Events.Distributed.csproj" />
-    <ProjectReference Include="..\Softalleys.Utilities.Events\Softalleys.Utilities.Events.csproj" />
+    <PackageReference Include="Softalleys.Utilities.Events.Distributed" Version="1.0.*" />
+    <PackageReference Include="Softalleys.Utilities.Events" Version="1.0.*" />
   </ItemGroup>
 
 </Project>
