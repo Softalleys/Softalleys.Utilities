@@ -1,0 +1,59 @@
+version: '3.9'
+services:
+  pubsub:
+    image: messagebird/gcloud-pubsub-emulator:latest
+    container_name: pubsub-emulator
+    ports:
+      - "8681:8681"
+    environment:
+      - PUBSUB_PROJECT_ID=local-project
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/8681"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  pong:
+    build:
+      context: ..
+      dockerfile: Softalleys.Utilities.Events.Distributed.GooglePubSub.Example/Pong/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    image: softalleys/pong:local
+    container_name: pong
+    depends_on:
+      pubsub:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:5187
+      - PUBSUB_EMULATOR_HOST=pubsub:8681
+      - CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB=http://pubsub:8681/
+      - Softalleys__Events__Distributed__GooglePubSub__ProjectId=local-project
+      - Softalleys__Events__Distributed__GooglePubSub__TopicId=events
+      - Pong__SubscriptionId=pong-sub
+    ports:
+      - "5187:5187"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/5187"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  ping:
+    build:
+      context: ..
+      dockerfile: Softalleys.Utilities.Events.Distributed.GooglePubSub.Example/Ping/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    image: softalleys/ping:local
+    container_name: ping
+    depends_on:
+      pubsub:
+        condition: service_healthy
+      pong:
+        condition: service_healthy
+    command: ["dotnet", "Ping.dll", "publish", "HelloFromDocker"]
+    environment:
+      - PUBSUB_EMULATOR_HOST=pubsub:8681
+      - CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB=http://pubsub:8681/
+      - Softalleys__Events__Distributed__GooglePubSub__ProjectId=local-project
+      - Softalleys__Events__Distributed__GooglePubSub__TopicId=events
+    

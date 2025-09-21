@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Softalleys.Utilities.Events.Distributed</PackageId>
+    <Authors>Softalleys</Authors>
+    <Company>Softalleys</Company>
+    <Description>Transport-agnostic distributed events core for Softalleys.Utilities.Events. Provides envelopes, naming, serialization, DI builder, event bus decorator, and receiver abstractions.</Description>
+    <PackageTags>events;distributed;event-bus;softalleys</PackageTags>
+    <RepositoryUrl>https://github.com/Softalleys/Softalleys.Utilities</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.*" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Softalleys.Utilities.Events\Softalleys.Utilities.Events.csproj" />
+  </ItemGroup>
+
+</Project>
