@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Softalleys.Utilities.Commands</PackageId>
-  <Version>1.0.3</Version>
+  <Version>1.0.4-rc.2.25502.107</Version>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>A lightweight command/mediator dispatcher with validation and processing pipeline, DI scanning and scoped/singleton handler support.</Description>
@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.*" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.2.25502.107" />
   </ItemGroup>
 
   <ItemGroup>

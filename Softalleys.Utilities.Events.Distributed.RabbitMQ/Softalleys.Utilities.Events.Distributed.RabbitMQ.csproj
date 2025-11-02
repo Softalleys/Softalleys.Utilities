@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Softalleys.Utilities.Events.Distributed" Version="1.0.*" />
-    <PackageReference Include="Softalleys.Utilities.Events" Version="1.0.*" />
+    <PackageReference Include="Softalleys.Utilities.Events" Version="1.1.*" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Softalleys.Utilities.Events</PackageId>
-  <Version>1.1.1</Version>
+  <Version>1.1.2-rc.2.25502.107</Version>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>A lightweight, flexible event-driven architecture library for .NET applications. Provides event handling with proper dependency injection scope management, pre/post processing pipelines, and both scoped and singleton handler support.</Description>
@@ -27,9 +27,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.*" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.2.25502.107" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-rc.2.25502.107" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-rc.2.25502.107" />
   </ItemGroup>
 
   <!-- README.md is included via .nuspec or PackageReadmeFile, not needed here for dotnet pack. -->

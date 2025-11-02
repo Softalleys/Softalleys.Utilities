@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Softalleys.Utilities.Commands</id>
-  <version>1.0.3</version>
+  <version>1.0.4-rc.2.25502.107</version>
     <authors>Softalleys</authors>
     <owners>Softalleys</owners>
     <license type="expression">MIT</license>
