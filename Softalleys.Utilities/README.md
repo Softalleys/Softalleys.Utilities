@@ -1,6 +1,6 @@
 # Softalleys.Utilities
 
-A comprehensive collection of utility classes, extension methods, and validation attributes for .NET applications.
+A comprehensive collection of utility classes, extension methods, and validation attributes for .NET applications with builds targeting .NET 8, .NET 9, and .NET 10.
 
 ## Installation
 

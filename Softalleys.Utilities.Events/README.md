@@ -1,6 +1,6 @@
 # Softalleys.Utilities.Events
 
-A lightweight, flexible event-driven architecture library for .NET applications. This library provides a robust event handling system with proper dependency injection scope management, pre/post processing pipelines, and support for both scoped and singleton handler lifecycles.
+A lightweight, flexible event-driven architecture library for .NET applications. This library provides a robust event handling system with proper dependency injection scope management, pre/post processing pipelines, and support for both scoped and singleton handler lifecycles. It targets .NET 8, .NET 9, and .NET 10 so you can adopt the latest runtime as soon as it lands.
 
 ## ✨ Features
 

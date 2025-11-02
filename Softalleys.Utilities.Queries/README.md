@@ -1,6 +1,6 @@
 # Softalleys.Utilities.Queries
 
-Lightweight CQRS query dispatcher with proper DI lifetimes (Scoped by default, opt-in Singleton) and streaming support for .NET 8 and .NET 9.
+Lightweight CQRS query dispatcher with proper DI lifetimes (Scoped by default, opt-in Singleton) and streaming support for .NET 8, .NET 9, and .NET 10.
 
 ## Features
 
