@@ -1,6 +1,6 @@
 # Softalleys.Utilities.Commands
 
-Lightweight command pipeline for .NET 8/9 with validators, processors, handlers, optional post-actions, and DI scanning. Designed to pair with Softalleys.Utilities.Events and Softalleys.Utilities.Queries.
+Lightweight command pipeline for .NET 8/9/10 with validators, processors, handlers, optional post-actions, and DI scanning. Designed to pair with Softalleys.Utilities.Events and Softalleys.Utilities.Queries.
 
 ## Concepts
 
@@ -72,7 +72,7 @@ public class CreateCategoryValidator : ICommandValidator<CreateCategoryCommand, 
     public Task<CreateCategoryResult> ValidateAsync(CreateCategoryCommand cmd, CancellationToken ct = default)
 ```
 
-### Injecting multiple validators and processors in a handler
+    Lightweight command pipeline for .NET (net8/net9/net10) with validators, processors, default handler, post-actions and DI scanning.
 
 ```csharp
 public record VerifyAlertCommand(CarMetadata Metadata) : ICommand<VerifyAlertResult>;
