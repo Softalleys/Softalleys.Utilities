@@ -30,9 +30,19 @@ using Softalleys.Utilities.Commands;
 builder.Services.AddSoftalleysCommands(typeof(SomeHandler).Assembly);
 ```
 
-- Mediator is registered as Singleton
+- Mediator is registered as Scoped (safe with scoped dependencies like DbContext)
 - Handlers are Scoped by default (Singleton if `ICommandSingletonHandler<,>` is implemented)
 - Validators, processors, and post-actions are Scoped by default
+
+### Inject single or multiple validators/processors (new)
+
+You can inject either a single service or a collection/array:
+
+- Single: `ICommandValidator<TCommand,TResult>` or `ICommandProcessor<TCommand,TResult>`
+- Multiple: `IEnumerable<ICommandValidator<TCommand,TResult>>` or `IEnumerable<ICommandProcessor<TCommand,TResult>>`
+- Multiple (array): `ICommandValidator<TCommand,TResult>[]` or `ICommandProcessor<TCommand,TResult>[]`
+
+The container will resolve all registered implementations in assembly scanning order. For arrays, the library registers adapters so arrays materialize correctly even when empty.
 
 ## Using the Default Pipeline
 
@@ -60,38 +70,59 @@ Implement validator and processor:
 public class CreateCategoryValidator : ICommandValidator<CreateCategoryCommand, CreateCategoryResult>
 {
     public Task<CreateCategoryResult> ValidateAsync(CreateCategoryCommand cmd, CancellationToken ct = default)
-    # Softalleys.Utilities.Commands
+```
 
-    Lightweight command pipeline for .NET (net8/net9) with validators, processors, default handler, post-actions and DI scanning.
+### Injecting multiple validators and processors in a handler
 
-    Key features
-    - ICommand/ICommandHandler pipeline with validation and processing stages
-    - DefaultCommandHandler to orchestrate validation → processing → post-actions
-    - DI scanning for handlers, validators, processors and post-actions
-    - Scoped and Singleton handler support via marker interface
-
-    Install
-    ```
-    dotnet add package Softalleys.Utilities.Commands --version 1.0.0
-    ```
-
-    Quickstart
-    ```csharp
-    // Register
-    builder.Services.AddSoftalleysCommands(typeof(SomeHandler).Assembly);
-
-    // Define command
-    public record CreateUserCommand(string Email, string Password) : ICommand<CreateUserResult>;
-
-    // Send
-    var result = await mediator.SendAsync<CreateUserResult, CreateUserCommand>(new CreateUserCommand("a@b.com","pwd"));
-    ```
-
-    License
-    MIT
-
-    Source
-    https://github.com/Softalleys/Softalleys.Utilities
-
-    For more details and examples, see the project README in the repository.
+```csharp
+public record VerifyAlertCommand(CarMetadata Metadata) : ICommand<VerifyAlertResult>;
+public record VerifyAlertResult(bool IsAlerted, string? TypeOfAlert) : IValidationStageResult
 {
+    public bool Continue => !IsAlerted; // short-circuit if an alert is found
+}
+
+public class VerifyAlertCommandModelValidator : ICommandValidator<VerifyAlertCommand, VerifyAlertResult> { /* ... */ }
+public class VerifyAlertCommandPaymentValidator : ICommandValidator<VerifyAlertCommand, VerifyAlertResult> { /* ... */ }
+
+public class VerifyAlertCommandSpeedProcessor : ICommandProcessor<VerifyAlertCommand, VerifyAlertResult> { /* ... */ }
+public class VerifyAlertCommandLicenseStatusProcessor : ICommandProcessor<VerifyAlertCommand, VerifyAlertResult> { /* ... */ }
+public class VerifyAlertCommandMaintenanceProcessor : ICommandProcessor<VerifyAlertCommand, VerifyAlertResult> { /* ... */ }
+
+// Handler can inject arrays or IEnumerable
+public class VerifyAlertCommandHandler(
+    ICommandProcessor<VerifyAlertCommand, VerifyAlertResult>[] processors,
+    ICommandValidator<VerifyAlertCommand, VerifyAlertResult>[] validators)
+    : ICommandHandler<VerifyAlertCommand, VerifyAlertResult>
+{
+    public async Task<VerifyAlertResult> HandleAsync(VerifyAlertCommand command, CancellationToken cancellationToken = default)
+    {
+        foreach (var v in validators)
+        {
+            var vr = await v.ValidateAsync(command, cancellationToken);
+            if (vr.IsAlerted) return vr; // short-circuit on first alert
+        }
+        foreach (var p in processors)
+        {
+            var pr = await p.ProcessAsync(command, cancellationToken);
+            if (pr.IsAlerted) return pr; // short-circuit on first alert
+        }
+        return new VerifyAlertResult(false, null);
+    }
+}
+```
+
+You can also inject only a single validator/processor if you prefer:
+
+```csharp
+public class SingleValidatorHandler(
+    ICommandValidator<MyCommand, MyResult> validator,
+    ICommandProcessor<MyCommand, MyResult> processor) : ICommandHandler<MyCommand, MyResult>
+{
+    public async Task<MyResult> HandleAsync(MyCommand command, CancellationToken ct = default)
+    {
+        var vr = await validator.ValidateAsync(command, ct);
+        if (vr is IValidationStageResult ok && !ok.Continue) return vr;
+        return await processor.ProcessAsync(command, ct);
+    }
+}
+```

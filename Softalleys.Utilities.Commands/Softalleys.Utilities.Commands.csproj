@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Softalleys.Utilities.Commands</PackageId>
-      <Version>1.0.2</Version>
+  <Version>1.0.3</Version>
     <Authors>Softalleys</Authors>
     <Company>Softalleys</Company>
     <Description>A lightweight command/mediator dispatcher with validation and processing pipeline, DI scanning and scoped/singleton handler support.</Description>
