@@ -1,6 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Softalleys.Utilities.Queries;
 
@@ -20,10 +18,8 @@ public class QueryDispatcher : IQueryDispatcher
     {
         if (query is null) throw new ArgumentNullException(nameof(query));
 
-        using var scope = _serviceProvider.CreateScope();
-        var sp = scope.ServiceProvider;
         var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResponse));
-        var handlers = sp.GetServices(handlerType).Cast<object>().ToList();
+        var handlers = _serviceProvider.GetServices(handlerType).Cast<object>().ToList();
         if (handlers.Count == 0)
             throw new InvalidOperationException($"No handler registered for {query.GetType().Name} -> {typeof(TResponse).Name}");
         if (handlers.Count > 1)
@@ -40,39 +36,20 @@ public class QueryDispatcher : IQueryDispatcher
         if (query is null) throw new ArgumentNullException(nameof(query));
 
         // Create a scope that will live for the duration of the consumer's enumeration
-        var scope = _serviceProvider.CreateScope();
-        var sp = scope.ServiceProvider;
         var handlerType = typeof(IQueryStreamHandler<,>).MakeGenericType(query.GetType(), typeof(TResponse));
-        var streamHandlers = sp.GetServices(handlerType).Cast<object>().ToList();
+        var streamHandlers = _serviceProvider.GetServices(handlerType).Cast<object>().ToList();
         if (streamHandlers.Count == 0)
         {
-            scope.Dispose();
             throw new InvalidOperationException($"No stream handler registered for {query.GetType().Name} -> IAsyncEnumerable<{typeof(TResponse).Name}>");
         }
         if (streamHandlers.Count > 1)
         {
-            scope.Dispose();
             throw new InvalidOperationException($"Multiple stream handlers registered for {query.GetType().Name} -> IAsyncEnumerable<{typeof(TResponse).Name}>");
         }
 
         var method = handlerType.GetMethod("StreamAsync")!;
         var sequence = (IAsyncEnumerable<TResponse>)method.Invoke(streamHandlers[0], new object[] { query, cancellationToken })!;
 
-        return WrapWithScope(sequence, scope, cancellationToken);
-    }
-
-    private static async IAsyncEnumerable<T> WrapWithScope<T>(IAsyncEnumerable<T> sequence, IServiceScope scope, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await foreach (var item in sequence.WithCancellation(cancellationToken))
-            {
-                yield return item;
-            }
-        }
-        finally
-        {
-            scope.Dispose();
-        }
+        return sequence;
     }
 }
